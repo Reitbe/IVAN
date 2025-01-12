@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -10,8 +10,8 @@
 class UCharacterMovementComponent;
 
 /*
-* Ä³¸¯ÅÍ Á¤º¸¸¦ °ü¸®ÇÏ´Â ÄÄÆ÷³ÍÆ®.
-* ¿òÁ÷ÀÓ Á¤º¸, Ã¼·Â(¹Ì±¸Çö) µîÀ» °ü¸®ÇÑ´Ù.
+* ìºë¦­í„° ì •ë³´ë¥¼ ê´€ë¦¬í•˜ëŠ” ì»´í¬ë„ŒíŠ¸.
+* ì›€ì§ì„ ì •ë³´, ì²´ë ¥(ë¯¸êµ¬í˜„) ë“±ì„ ê´€ë¦¬í•œë‹¤.
 */
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -28,7 +28,7 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-// Ä³¸¯ÅÍ µ¿ÀÛ »óÅÂ Á¤º¸
+// ìºë¦­í„° ë™ì‘ ìƒíƒœ ì •ë³´
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State");
 	EMovementState MovementState;
@@ -47,7 +47,7 @@ protected:
 	
 	TObjectPtr<UCharacterMovementComponent> CharacterMovementComponent;
 
-// Ä³¸¯ÅÍ »óÅÂ º¯°æ ¹× È¹µæ
+// ìºë¦­í„° ìƒíƒœ ë³€ê²½ ë° íšë“
 public:
 	void SetCharacterMovementState(EMovementState NewState) { MovementState = NewState; };
 	void SetCharacterGaitState(EGaitState NewState) { GaitState = NewState; };

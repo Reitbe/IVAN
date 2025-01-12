@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "IVPlayerAnim.h"
@@ -14,7 +14,7 @@ void UIVPlayerAnim::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	// Ä³¸¯ÅÍ¿Í ½ºÅÈ ÄÄÆ÷³ÍÆ®ÀÇ µ¥ÀÌÅÍ¿¡ Á¢±Ù
+	// ìºë¦­í„°ì™€ ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ì˜ ë°ì´í„°ì— ì ‘ê·¼
 	AActor* Owner = GetOwningActor();
 	if (Owner->Implements<UIIVCharacterComponentProvider>())
 	{
@@ -29,7 +29,7 @@ void UIVPlayerAnim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	// Ä³¸¯ÅÍÀÇ »óÅÂ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ®
+	// ìºë¦­í„°ì˜ ìƒíƒœ ì •ë³´ë¥¼ ì—…ë°ì´íŠ¸
 	if (StatComponent)
 	{
 		MovementState = StatComponent->GetCharacterMovementState();

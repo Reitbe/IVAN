@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "IVCharacterBase.h"
@@ -10,19 +10,19 @@ AIVCharacterBase::AIVCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Ä³¸¯ÅÍ¿Í ÄÁÆ®·Ñ·¯ÀÇ È¸ÀüÀ» ºĞ¸®
+	// ìºë¦­í„°ì™€ ì»¨íŠ¸ë¡¤ëŸ¬ì˜ íšŒì „ì„ ë¶„ë¦¬
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false; 
 	bUseControllerRotationRoll = false;
 
-	// ¿òÁ÷ÀÓ ¼³Á¤
+	// ì›€ì§ì„ ì„¤ì •
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 400.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 500.0f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.2f;
 
-	// ¸ğµâÇü ÀÇ»ó ½Ã½ºÅÛ
+	// ëª¨ë“ˆí˜• ì˜ìƒ ì‹œìŠ¤í…œ
 	HelmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HelmMesh"));
 	LegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"));
 	ShoulderArmourMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShoulderArmourMesh"));
@@ -33,7 +33,7 @@ AIVCharacterBase::AIVCharacterBase()
 	BeltMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BeltMesh"));
 	CloakMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CloakMesh"));
 
-	// ¸ğµâÇü ÀÇ»ó ½Ã½ºÅÛÀÇ À§°è ¼³Á¤
+	// ëª¨ë“ˆí˜• ì˜ìƒ ì‹œìŠ¤í…œì˜ ìœ„ê³„ ì„¤ì •
 	HelmMesh->SetupAttachment(GetMesh());
 	LegsMesh->SetupAttachment(GetMesh());
 	ShoulderArmourMesh->SetupAttachment(GetMesh());

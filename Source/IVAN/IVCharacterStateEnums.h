@@ -1,14 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 
 /**
- * Ä³¸¯ÅÍÀÇ µ¿ÀÛ »óÅÂ¸¦ ³ªÅ¸³»´Â ¿­°ÅÇü ¸ğÀ½.
+ * ìºë¦­í„°ì˜ ë™ì‘ ìƒíƒœë¥¼ ë‚˜íƒ€ë‚´ëŠ” ì—´ê±°í˜• ëª¨ìŒ.
  */
 
-// Ä³¸¯ÅÍ ÀÌµ¿ »óÅÂ
+// ìºë¦­í„° ì´ë™ ìƒíƒœ
 UENUM(BlueprintType)
 enum class EMovementState : uint8
 {
@@ -16,7 +16,7 @@ enum class EMovementState : uint8
 	Move		UMETA(DisplayName = "Move"),
 };
 
-// Gait´Â °ÉÀ½°ÉÀÌ¸¦ ÀÇ¹ÌÇÔ
+// GaitëŠ” ê±¸ìŒê±¸ì´ë¥¼ ì˜ë¯¸í•¨
 UENUM(BlueprintType)
 enum class EGaitState : uint8 
 {
@@ -24,7 +24,7 @@ enum class EGaitState : uint8
     Run         UMETA(DisplayName = "Run")
 };
 
-// Ä³¸¯ÅÍ Á¡ÇÁ »óÅÂ
+// ìºë¦­í„° ì í”„ ìƒíƒœ
 UENUM(BlueprintType)
 enum class EJumpState : uint8
 {
@@ -32,7 +32,7 @@ enum class EJumpState : uint8
     OnGround    UMETA(DisplayName = "On Ground")
 };
 
-// Ä³¸¯ÅÍ Å¸°ÙÆÃ »óÅÂ
+// ìºë¦­í„° íƒ€ê²ŸíŒ… ìƒíƒœ
 UENUM(BlueprintType)
 enum class ETargetingState : uint8
 {
@@ -40,7 +40,7 @@ enum class ETargetingState : uint8
     NonTargeting    UMETA(DisplayName = "Non-Targeting")
 };
 
-// Æ¯¼ö ¿òÁ÷ÀÓ »óÅÂ
+// íŠ¹ìˆ˜ ì›€ì§ì„ ìƒíƒœ
 UENUM(BlueprintType)
 enum class ESpecialMovementState : uint8
 {

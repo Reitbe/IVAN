@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+О╩©// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "IVCharacterStatComponent.h"
@@ -20,7 +20,7 @@ void UIVCharacterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// дЁ╦╞ем ©РаВюс а╓╨╦ х╧╣Ф©К ддфВЁмф╝
+	// Л╨░К╕╜М└╟ Л⌡─Л╖│Л·└ Л═∙КЁ╢ М █К⌠²Л ╘ Л╩╢М▐╛К└▄М┼╦
 	AActor* Owner = GetOwner();
 	if (Owner != nullptr && Owner->Implements<UIIVCharacterComponentProvider>())
 	{
@@ -35,10 +35,10 @@ void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	if (CharacterMovementComponent)
 	{
-		JumpState = (CharacterMovementComponent->IsFalling()) ? EJumpState::InAir : EJumpState::OnGround; // а║га ╩Себ ╟╩╫е	
-		MovementState = (CharacterMovementComponent->Velocity.Size2D() > 0.0f) ? EMovementState::Move : EMovementState::Idle; // ©РаВюс ╩Себ ╟╩╫е
-		// ╟ию╫╟июл ╩Себ -> гц╥╧юл╬Н дЁ╦╞ем©║╪╜ аЖа╓
-		// е╦╟ыфц ╩Себ -> гц╥╧юл╬Н дЁ╦╞ем©║╪╜ аЖа╓
+		JumpState = (CharacterMovementComponent->IsFalling()) ? EJumpState::InAir : EJumpState::OnGround; // Л═░М■└ Л┐│М┐° Й╟╠Л▀═	
+		MovementState = (CharacterMovementComponent->Velocity.Size2D() > 0.0f) ? EMovementState::Move : EMovementState::Idle; // Л⌡─Л╖│Л·└ Л┐│М┐° Й╟╠Л▀═
+		// Й╠╦Л²▄Й╠╦Л²╢ Л┐│М┐° -> М■▄К═┬Л²╢Л√╢ Л╨░К╕╜М└╟Л≈░Л└° Л╖─Л═∙
+		// М┐─Й╡÷М▄┘ Л┐│М┐° -> М■▄К═┬Л²╢Л√╢ Л╨░К╕╜М└╟Л≈░Л└° Л╖─Л═∙
 	}
 }
 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -10,8 +10,8 @@ class USkeletalMeshComponent;
 class UIVCharacterStatComponent;
 
 /*
-* ´Ù¾çÇÑ Ä³¸¯ÅÍµéÀÇ ±âº»ÀÌ µÇ´Â Å¬·¡½º.
-* ¸ğµâÇü ÀÇ»ó ½Ã½ºÅÛÀº ÃßÈÄ ºĞ¸®ÇÏ¿© º°µµÀÇ Å¬·¡½º·Î ±¸ÇöÇÒ ¿¹Á¤.
+* ë‹¤ì–‘í•œ ìºë¦­í„°ë“¤ì˜ ê¸°ë³¸ì´ ë˜ëŠ” í´ë˜ìŠ¤.
+* ëª¨ë“ˆí˜• ì˜ìƒ ì‹œìŠ¤í…œì€ ì¶”í›„ ë¶„ë¦¬í•˜ì—¬ ë³„ë„ì˜ í´ë˜ìŠ¤ë¡œ êµ¬í˜„í•  ì˜ˆì •.
 */
 
 UCLASS()
@@ -29,11 +29,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-// ½ºÅİ ½Ã½ºÅÛ
+// ìŠ¤í…Ÿ ì‹œìŠ¤í…œ
 	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
 
 
-// ¸ğµâÇü ÀÇ»ó ½Ã½ºÅÛ(ÃßÈÄ ºĞ¸®)
+// ëª¨ë“ˆí˜• ì˜ìƒ ì‹œìŠ¤í…œ(ì¶”í›„ ë¶„ë¦¬)
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularSkin", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> HelmMesh;

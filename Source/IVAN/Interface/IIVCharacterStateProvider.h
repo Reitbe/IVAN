@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -15,8 +15,8 @@ class UIIVCharacterStateProvider : public UInterface
 };
 
 /**
- * ¹Ì»ç¿ë ÀÎÅÍÆäÀÌ½º! 
- * ¾Ö´Ô ÀÎ½ºÅÏ½º¿Í ½ºÅÈ ÄÄÆ÷³ÍÆ®°£ ¿¬°áÀ» À§ÇÏ¿© »ç¿ëÇÏ·Á ÇßÀ¸³ª, ¾Ö´Ô ÀÎ½ºÅÏ½º¿¡¼­ ½ºÅÈ ÄÄÆ÷³ÍÆ®¸¦ Á÷Á¢ ÂüÁ¶ÇÏ´Â ¹æ½ÄÀ¸·Î º¯°æÇÔ.
+ * ë¯¸ì‚¬ìš© ì¸í„°í˜ì´ìŠ¤! 
+ * ì• ë‹˜ ì¸ìŠ¤í„´ìŠ¤ì™€ ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ê°„ ì—°ê²°ì„ ìœ„í•˜ì—¬ ì‚¬ìš©í•˜ë ¤ í–ˆìœ¼ë‚˜, ì• ë‹˜ ì¸ìŠ¤í„´ìŠ¤ì—ì„œ ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ë¥¼ ì§ì ‘ ì°¸ì¡°í•˜ëŠ” ë°©ì‹ìœ¼ë¡œ ë³€ê²½í•¨.
  */
 
 class IVAN_API IIIVCharacterStateProvider

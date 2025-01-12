@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -13,7 +13,7 @@ class IIIVCharacterStateProvider;
 class UIVCharacterStatComponent;
 
 /**
- * ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍÀÇ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ´ã´çÇÑ´Ù.
+ * í”Œë ˆì´ì–´ ìºë¦­í„°ì˜ ì• ë‹ˆë©”ì´ì…˜ì„ ë‹´ë‹¹í•œë‹¤.
  */
 
 UCLASS()
@@ -26,7 +26,7 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
-// Ä³¸¯ÅÍ Á¤º¸ È¹µæÀ» À§ÇÑ ÄÄÆ÷³ÍÆ®
+// ìºë¦­í„° ì •ë³´ íšë“ì„ ìœ„í•œ ì»´í¬ë„ŒíŠ¸
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	TObjectPtr<UCharacterMovementComponent> MovementComponent;
@@ -38,7 +38,7 @@ protected:
 	TObjectPtr<UIVCharacterStatComponent> StatComponent;
 
 
-// Ä³¸¯ÅÍ »óÅÂ Á¤º¸
+// ìºë¦­í„° ìƒíƒœ ì •ë³´
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	EMovementState MovementState;

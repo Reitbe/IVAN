@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,8 +7,8 @@
 #include "IVAnimBase.generated.h"
 
 /**
- * ¾Ö´Ô ÀÎ½ºÅÏ½º °øÅë ¿ä¼Ò Á¤ÀÇ¿ë Å¬·¡½º.
- * ¾ÆÁ÷ ÀÚ½Ä Å¬·¡½º¸¦ ÇÏ³ª¹Û¿¡ ¸¸µéÁö ¾Ê¾Æ¼­ ºó Å¬·¡½º·Î ³²°ÜµĞ´Ù.
+ * ì• ë‹˜ ì¸ìŠ¤í„´ìŠ¤ ê³µí†µ ìš”ì†Œ ì •ì˜ìš© í´ë˜ìŠ¤.
+ * ì•„ì§ ìì‹ í´ë˜ìŠ¤ë¥¼ í•˜ë‚˜ë°–ì— ë§Œë“¤ì§€ ì•Šì•„ì„œ ë¹ˆ í´ë˜ìŠ¤ë¡œ ë‚¨ê²¨ë‘”ë‹¤.
  */
 
 UCLASS()

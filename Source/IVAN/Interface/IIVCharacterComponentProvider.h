@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -18,8 +18,8 @@ class UIIVCharacterComponentProvider : public UInterface
 };
 
 /**
- * Ä³¸¯ÅÍ ¿òÁ÷ÀÓ Á¤º¸ Àü´ŞÀ» À§ÇÑ ÀÎÅÍÆäÀÌ½º.
- * ½ºÅÈ ÄÄÆ÷³ÍÆ®¿¡ µ¿ÀÛ Á¤º¸°¡ ÀÖ±â¿¡ ÀÌ ¶ÇÇÑ Æ÷ÇÔµÇ¾îÀÖ´Ù.
+ * ìºë¦­í„° ì›€ì§ì„ ì •ë³´ ì „ë‹¬ì„ ìœ„í•œ ì¸í„°í˜ì´ìŠ¤.
+ * ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ì— ë™ì‘ ì •ë³´ê°€ ìˆê¸°ì— ì´ ë˜í•œ í¬í•¨ë˜ì–´ìˆë‹¤.
  */
 
 class IVAN_API IIIVCharacterComponentProvider
