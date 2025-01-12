@@ -13,6 +13,7 @@ class UInputAction;
  * 본 게임에서 사용되는 플레이어 컨트롤러.
  * 입력에 따른 캐릭터 조종 작업중.
  */
+
 UCLASS()
 class IVAN_API AIVPlayerController : public APlayerController
 {
@@ -22,7 +23,7 @@ public:
 	AIVPlayerController();
 
 private:
-	void InputConstructHelper();
+	
 
 protected:
 	virtual void BeginPlay() override;
@@ -32,7 +33,10 @@ public:
 	virtual void SetupInputComponent() override;
 
 protected:
-	/* 탭 눌러서 나오는 멀티 메뉴*/
+	void InputConstructHelper();
+
+protected:
+	/* 멀티 메뉴 표시 */
 	void ShowMenu();
 
 protected:

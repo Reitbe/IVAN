@@ -5,10 +5,12 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CharacterTrajectoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "IVAN/Stat/IVCharacterStatComponent.h"
 
 AIVPlayerCharacter::AIVPlayerCharacter()
 {
@@ -16,6 +18,15 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 
 	// 입력 관련 에셋들 초기화
 	InputConstructHelper();
+
+	// 몽타주 관련 에셋들 초기화
+	MontageConstructHelper();
+
+	// 모션 매칭용 추적 컴포넌트
+	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("CharacterTrajectoryComponent"));
+
+	// 캐릭터 스탯 상호작용을 위한 컴포넌트
+	CharacterStatComponent = CreateDefaultSubobject<UIVCharacterStatComponent>(TEXT("CharacterStatComponent"));
 
 	// 카메라 관련 컴포넌트 설정
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
@@ -27,6 +38,7 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	CameraComponent->bUsePawnControlRotation = false;
 }
 
+// 입력 관련 에셋들은 생성자에서 초기화 및 로드
 void AIVPlayerCharacter::InputConstructHelper()
 {
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextFinder
@@ -57,11 +69,25 @@ void AIVPlayerCharacter::InputConstructHelper()
 		BasicMovement = BasicMovementFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> SpecialMovementFinder
+	static ConstructorHelpers::FObjectFinder<UInputAction> SpecialMovementFinder 
 	(TEXT("/Game/Input/Actions/IA_SpecialMove.IA_SpecialMove"));
 	if (SpecialMovementFinder.Succeeded())
 	{
 		SpecialMovement = SpecialMovementFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionFinder 
+	(TEXT("/Game/Input/Actions/IA_Jump.IA_Jump"));
+	if (JumpActionFinder.Succeeded())
+	{
+		JumpAction = JumpActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunWalkSwitchActionFinder
+	(TEXT("/Game/Input/Actions/IA_RunWalkSwitch.IA_RunWalkSwitch"));
+	if (RunWalkSwitchActionFinder.Succeeded())
+	{
+		RunWalkSwitchAction = RunWalkSwitchActionFinder.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionFinder
@@ -121,6 +147,30 @@ void AIVPlayerCharacter::InputConstructHelper()
 	}
 }
 
+void AIVPlayerCharacter::MontageConstructHelper()
+{
+	/*
+	* 애님 인스턴스는 Blueprint에서 연결한다. 관련된 에셋들이 많기 때문이다.
+	* 몽타주는 별도로 BeginPlay에서 로드한다.
+	*/
+
+	RollMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
+		TEXT("/Game/Animation/Retarget/Roll/Roll_Edit_Montage.Roll_Edit_Montage"))
+	);
+
+	DodgeRightMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
+		TEXT(""))
+	);
+
+	DodgeLeftMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
+		TEXT(""))
+	);
+
+	DodgeBackMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
+		TEXT(""))
+	);
+}
+
 void AIVPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -135,11 +185,23 @@ void AIVPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(InputMappingContext, 1); // PlayerController의 우선순위는 0이다.
 		}
 	}
+
+	// 몽타주 로드
+	AnimInstance = GetMesh()->GetAnimInstance();
+	RollMontage.LoadSynchronous();
+	DodgeRightMontage.LoadSynchronous(); // 미구현
+	DodgeLeftMontage.LoadSynchronous(); // 미구현
+	DodgeBackMontage.LoadSynchronous(); // 미구현
+
+	// 캐릭터 속도 초기화
+	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 }
 
 void AIVPlayerCharacter::Tick(float DeltaTime)
 {
 }
+
+
 
 void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -147,10 +209,10 @@ void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	if (UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		//Input->BindAction(BasicAttack, ETriggerEvent::Started, this, &AIVPlayerCharacter::BasicMove);
-		//Input->BindAction(SpecialAttack, ETriggerEvent::Started, this, &AIVPlayerCharacter::SpecialMove);
 		Input->BindAction(BasicMovement, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::BasicMove);
 		Input->BindAction(SpecialMovement, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::SpecialMove);
+		Input->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump); // ACharacter의 Jump 함수 사용
+		Input->BindAction(RunWalkSwitchAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::RunWalkSwitch);
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::Look);
 	}
 }
@@ -178,25 +240,38 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 
 void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 {
-	// 스페이스바를 한 번 누르면 구르기, 스페이스바를 길게 누르면 전력질주, 스페이스바를 길게 누른 상태에서 한 번 더 누르면 점프
-	if (PlayerController)
+	// 구르기 동작 중 다른 특수 움직임을 할 수 없다.
+	if (CharacterStatComponent->GetCharacterSpecialMovementState() == ESpecialMovementState::None)
 	{
-		Jump();
-		//float PressedTime = Value.Get<float>();
+		if (AnimInstance && CharacterStatComponent)
+		{
+			AnimInstance->Montage_Play(RollMontage.Get());
+			CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::Rolling); // 구르기 시작할 때 상태 변경
 
-		//if (PressedTime < 0.2f) // 구르기
-		//{
-		//	//Roll();
-		//}
-		//else if (PressedTime >= 0.2f) // 전력질주
-		//{
-		//	//Sprint();
-		//}
-		//else if (PressedTime >= 1.0f)
-		//{
-		//	// 점프(Character 클래스)
-		//	
-		//}
+			FOnMontageBlendingOutStarted BlendingOutDelegate;
+			BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+				{
+					CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None); // 구르기 끝날 때 상태 변경
+				});
+			AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, RollMontage.Get());
+		}
+	}
+}
+
+void AIVPlayerCharacter::RunWalkSwitch(const FInputActionValue& Value)
+{
+	if (CharacterStatComponent)
+	{
+		if (CharacterStatComponent->GetCharacterGaitState() == EGaitState::Run) // 달리기->걷기
+		{
+			CharacterStatComponent->SetCharacterGaitState(EGaitState::Walk);
+			GetCharacterMovement()->MaxWalkSpeed /= 2;
+		}
+		else // 걷기 -> 달리기
+		{
+			CharacterStatComponent->SetCharacterGaitState(EGaitState::Run);
+			GetCharacterMovement()->MaxWalkSpeed *= 2;
+		}
 	}
 }
 

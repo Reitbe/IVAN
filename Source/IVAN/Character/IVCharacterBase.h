@@ -7,6 +7,12 @@
 #include "IVCharacterBase.generated.h"
 
 class USkeletalMeshComponent;
+class UIVCharacterStatComponent;
+
+/*
+* 다양한 캐릭터들의 기본이 되는 클래스.
+* 모듈형 의상 시스템은 추후 분리하여 별도의 클래스로 구현할 예정.
+*/
 
 UCLASS()
 class IVAN_API AIVCharacterBase : public ACharacter
@@ -14,21 +20,20 @@ class IVAN_API AIVCharacterBase : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AIVCharacterBase();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-// 모듈형 의상 시스템
+// 스텟 시스템
+	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
+
+
+// 모듈형 의상 시스템(추후 분리)
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularSkin", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> HelmMesh;

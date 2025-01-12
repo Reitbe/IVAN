@@ -11,9 +11,9 @@ AIVPlayerController::AIVPlayerController()
 {
 	// 입력 관련 에셋들 초기화
 	InputConstructHelper();
-
 }
 
+// 입력 관련 에셋들은 생성자에서 초기화 및 로드
 void AIVPlayerController::InputConstructHelper()
 {
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextFinder

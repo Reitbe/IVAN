@@ -33,7 +33,7 @@ AIVCharacterBase::AIVCharacterBase()
 	BeltMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BeltMesh"));
 	CloakMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CloakMesh"));
 
-	// 모듈형 의상 시스템의 위치 설정
+	// 모듈형 의상 시스템의 위계 설정
 	HelmMesh->SetupAttachment(GetMesh());
 	LegsMesh->SetupAttachment(GetMesh());
 	ShoulderArmourMesh->SetupAttachment(GetMesh());

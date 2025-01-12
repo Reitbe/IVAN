@@ -15,6 +15,11 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+/*
+* 3인칭 템플릿에 포함된 기본 캐릭터 클래스.
+* 테스트용으로 사용할 수 있기에 남겨두었다.
+*/
+
 UCLASS(config=Game)
 class AIVANCharacter : public ACharacter
 {

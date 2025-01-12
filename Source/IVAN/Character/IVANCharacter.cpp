@@ -13,9 +13,6 @@
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
-//////////////////////////////////////////////////////////////////////////
-// AIVANCharacter
-
 AIVANCharacter::AIVANCharacter()
 {
 	// Set size for collision capsule
