@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "IVANCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -12,9 +12,6 @@
 #include "InputActionValue.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
-
-//////////////////////////////////////////////////////////////////////////
-// AIVANCharacter
 
 AIVANCharacter::AIVANCharacter()
 {
