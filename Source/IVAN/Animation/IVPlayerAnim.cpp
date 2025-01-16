@@ -5,11 +5,6 @@
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h" 
 
-void UIVPlayerAnim::NativeInitializeAnimation()
-{
-	Super::NativeInitializeAnimation();
-}
-
 void UIVPlayerAnim::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();

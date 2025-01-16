@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "IVAN/IVCharacterStateEnums.h"
+#include "IVAN/Enums/IVCharacterStateEnums.h"
 #include "IIVCharacterStateProvider.generated.h"
 
 // This class does not need to be modified.
@@ -15,7 +15,6 @@ class UIIVCharacterStateProvider : public UInterface
 };
 
 /**
- * 미사용 인터페이스! 
  * 애님 인스턴스와 스탯 컴포넌트간 연결을 위하여 사용하려 했으나, 애님 인스턴스에서 스탯 컴포넌트를 직접 참조하는 방식으로 변경함.
  */
 

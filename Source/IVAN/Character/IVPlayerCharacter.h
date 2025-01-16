@@ -36,6 +36,7 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
+	/* 캐릭터를 조종하는 플레이어 컨트롤러*/
 	TObjectPtr<APlayerController> PlayerController;
 
 // 모션 매칭
@@ -49,7 +50,7 @@ public:
 	virtual UIVCharacterStatComponent* GetCharacterStatComponent() const override { return CharacterStatComponent; }
 
 
-// 구르기, 닷지와 같은 특수 움직임용 몽타주
+// 구르기, 닷지와 같은 특수 움직임용 몽타주 로드 헬퍼
 protected:
 	void MontageConstructHelper();
 
@@ -58,28 +59,31 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TObjectPtr<UAnimInstance> AnimInstance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TSoftObjectPtr<UAnimMontage> RollMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TSoftObjectPtr<UAnimMontage> DodgeRightMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TSoftObjectPtr<UAnimMontage> DodgeLeftMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TSoftObjectPtr<UAnimMontage> DodgeBackMontage;
+
+// 공격 처리
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 
 // 입력
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 protected:
-	/* 각종 행동 입력 구현 */
+	/* 2D평면 움직임 및 시선 이동 */
 	void BasicMove(const FInputActionValue& Value);
 	void SpecialMove(const FInputActionValue& Value); // 구르기, 닷지
-	void RunWalkSwitch(const FInputActionValue& Value); // 걷기 달리기 전환
 	void Look(const FInputActionValue& Value);
+	
+	/* 상태 전환 */
+	void RunWalkSwitch(const FInputActionValue& Value); // 걷기 달리기 전환
+
+	/* 공격 */
+	void BasicAttack(const FInputActionValue& Value); // 기본 공격
+
 
 private:
 	void InputConstructHelper();
@@ -88,7 +92,7 @@ protected:
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 
 	/* 일반 공격과 특수 공격*/
-	TObjectPtr<UInputAction> BasicAttack;
+	TObjectPtr<UInputAction> BasicAttackAction;
 	TObjectPtr<UInputAction> SpecialAttack;
 
 	/* 평면 이동, 점프, 시선 처리와 같은 기본 움직임 */

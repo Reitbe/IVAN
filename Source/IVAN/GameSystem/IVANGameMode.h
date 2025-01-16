@@ -13,6 +13,12 @@ class AIVANGameMode : public AGameModeBase
 
 public:
 	AIVANGameMode();
+
+	virtual void BeginPlay() override;
+
+// 사망처리
+public:
+	void OnPlayerDeath();
 };
 
 

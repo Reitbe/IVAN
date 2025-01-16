@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "CharacterTrajectoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -48,11 +49,11 @@ void AIVPlayerCharacter::InputConstructHelper()
 		InputMappingContext = InputMappingContextFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> BasicAttackFinder
-	(TEXT(""));
-	if (BasicAttackFinder.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UInputAction> BasicAttackActionFinder
+	(TEXT("/Game/Input/Actions/IA_BasicAttack.IA_BasicAttack"));
+	if (BasicAttackActionFinder.Succeeded())
 	{
-		BasicAttack = BasicAttackFinder.Object;
+		BasicAttackAction = BasicAttackActionFinder.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> SpecialAttackFinder
@@ -186,10 +187,11 @@ void AIVPlayerCharacter::BeginPlay()
 		}
 	}
 
-	// 몽타주 로드
+	
 	AnimInstance = GetMesh()->GetAnimInstance();
-	RollMontage.LoadSynchronous();
-	DodgeRightMontage.LoadSynchronous(); // 미구현
+
+	RollMontage.LoadSynchronous();		// 몽타주 로드
+	DodgeRightMontage.LoadSynchronous();// 미구현
 	DodgeLeftMontage.LoadSynchronous(); // 미구현
 	DodgeBackMontage.LoadSynchronous(); // 미구현
 
@@ -201,19 +203,23 @@ void AIVPlayerCharacter::Tick(float DeltaTime)
 {
 }
 
-
-
 void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		// 이동 및 시야
 		Input->BindAction(BasicMovement, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::BasicMove);
 		Input->BindAction(SpecialMovement, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::SpecialMove);
 		Input->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump); // ACharacter의 Jump 함수 사용
-		Input->BindAction(RunWalkSwitchAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::RunWalkSwitch);
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::Look);
+
+		// 전환
+		Input->BindAction(RunWalkSwitchAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::RunWalkSwitch);
+
+		// 공격
+		Input->BindAction(BasicAttackAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::BasicAttack);
 	}
 }
 
@@ -240,8 +246,11 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 
 void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 {
-	// 구르기 동작 중 다른 특수 움직임을 할 수 없다.
-	if (CharacterStatComponent->GetCharacterSpecialMovementState() == ESpecialMovementState::None)
+	// 이미 특수 동작 중이거나 공중에 떠 있을 때는 실행하지 않는다.
+	bool bInAir = GetCharacterMovement()->IsFalling();
+	bool bIsRolling = CharacterStatComponent->GetCharacterSpecialMovementState() == ESpecialMovementState::Rolling;
+
+	if (!bInAir && !bIsRolling) 
 	{
 		if (AnimInstance && CharacterStatComponent)
 		{
@@ -282,6 +291,29 @@ void AIVPlayerCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(Value.Get<FVector2D>().X);
 		AddControllerPitchInput(Value.Get<FVector2D>().Y);
 	}
+}
+
+void AIVPlayerCharacter::BasicAttack(const FInputActionValue& Value)
+{
+	// [임시구현] 캐릭터를 중심으로 구 범위에 있는 적에게 데미지를 준다. 그리고 그 범위를 표시한다.
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Basic Attack"));
+	UGameplayStatics::ApplyRadialDamage(this, 50.0f, GetActorLocation(), 300.0f, nullptr, TArray<AActor*>(), this, nullptr, true, ECC_Visibility);
+	DrawDebugSphere( // 데미지 범위 표시
+		GetWorld(),              // 월드 컨텍스트
+		GetActorLocation(),      // 중심 위치
+		300.0f,                  // 반경
+		12,                      // 세그먼트 수
+		FColor::Red,             // 색상
+		false,                   // 영구적으로 그릴지 여부
+		3.0f                     // 지속 시간 (초)
+	);
+}
+
+float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	// 캐릭터 스탯 컴포넌트에 데미지 전달
+	CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	return 0.0f;
 }
 
 

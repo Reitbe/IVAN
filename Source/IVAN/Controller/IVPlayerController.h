@@ -8,6 +8,7 @@
 
 class UInputMappingContext;
 class UInputAction;
+class AIVSimpleStatHUD;
 
 /**
  * 본 게임에서 사용되는 플레이어 컨트롤러.
@@ -19,25 +20,28 @@ class IVAN_API AIVPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+// 기본
 public:
 	AIVPlayerController();
 
-private:
-	
-
 protected:
 	virtual void BeginPlay() override;
+
+// HUD
+protected:
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;
 
 // 입력
 public:
 	virtual void SetupInputComponent() override;
 
 protected:
-	void InputConstructHelper();
-
-protected:
 	/* 멀티 메뉴 표시 */
 	void ShowMenu();
+
+private:
+	void InputConstructHelper();
 
 protected:
 	TObjectPtr<UInputMappingContext> InputMappingContext;
