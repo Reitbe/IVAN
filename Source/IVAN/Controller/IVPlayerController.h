@@ -36,14 +36,14 @@ protected:
 public:
 	virtual void SetupInputComponent() override;
 
-protected:
-	/* 멀티 메뉴 표시 */
-	void ShowMenu();
-
 private:
 	void InputConstructHelper();
 
 protected:
+	/* 멀티 메뉴 표시 */
+	void ShowMenu();
+
+	/* 입력 컨텍스트 및 액션 */
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	TObjectPtr<UInputAction> ShowMenuAction;
 };

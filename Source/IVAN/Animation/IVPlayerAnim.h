@@ -13,7 +13,7 @@ class IIIVCharacterStateProvider;
 class UIVCharacterStatComponent;
 
 /**
- * 플레이어 캐릭터의 애니메이션을 담당한다.
+ * 메인 플레이어 캐릭터의 애니메이션
  */
 
 UCLASS()
@@ -21,19 +21,22 @@ class IVAN_API UIVPlayerAnim : public UIVAnimBase
 {
 	GENERATED_BODY()
 
+// 기본
 protected:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
-// 캐릭터 움직임 정보 획득을 위한 컴포넌트
+// 캐릭터 움직임 정보 획득을 위한 컴포넌트 목록
 protected:
+	/* 기본 이동 및 점프 확인용 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	TObjectPtr<UCharacterMovementComponent> MovementComponent;
 
+	/* 모션 매칭을 위한 캐릭터 궤적 확인용 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	TObjectPtr<UCharacterTrajectoryComponent> TrajectoryComponent;
 
-	/* 캐릭터 상태 정보 및 움직임 정보 획득용 */
+	/* 특수 상태 및 상태 정보 확인용 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	TObjectPtr<UIVCharacterStatComponent> StatComponent;
 

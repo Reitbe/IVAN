@@ -22,29 +22,30 @@ class IVAN_API AIVTempEnemy : public AActor
 // 기본
 public:	
 	AIVTempEnemy();
+	virtual void Tick(float DeltaTime) override;
+
+	/* 루트 컴포넌트 설정용 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<UBoxComponent> BoxComponent;
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
 
-// 피격
+// 피격 처리
+public:	
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-// 시각 표현용
+
+// 체력 스탯 및 위젯
 public:
-	/* 루트 컴포넌트 설정용 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	TObjectPtr<UBoxComponent> BoxComponent;
-public:
-	/* 체력 위젯 */
+	/* 체력 위젯 장착용 위젯 컴포넌트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UWidgetComponent> WidgetComponent;
 
+	/* 체력 바 위젯 */
 	TObjectPtr<UIVBaseStatBar> HealthBar;
 
-// 임시 스탯
 private:
 	float MaxHealth;
 	float CurrentHealth;

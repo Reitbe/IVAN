@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 
 /**
- * 캐릭터의 동작 상태를 나타내는 열거형 모음.
- * 모션 매칭의 Chooser를 위해 사용된다. 그렇기에 구조체로 묶지 않는다.
+ * 캐릭터의 상태를 나타내는 열거형 모음.
  */
 
-// 캐릭터 이동 상태
+// 캐릭터 이동 상태. 모션 매칭의 Chooser를 위해 사용된다.
 UENUM(BlueprintType)
 enum class EMovementState : uint8
 {
@@ -47,7 +46,17 @@ enum class ESpecialMovementState : uint8
 {
 	None		UMETA(DisplayName = "None"),
     Rolling     UMETA(DisplayName = "Rolling"),
-    Dodging     UMETA(DisplayName = "Dodging")
+    Dodging     UMETA(DisplayName = "Dodging"),
+    Attacking   UMETA(DisplayName = "Attacking"),  // 공격 중
+    HitStunned  UMETA(DisplayName = "Hit Stunned") // 피격 중
+};
+
+// 캐릭터 생존 상태
+UENUM(BlueprintType)
+enum class ELifeState : uint8
+{
+	Alive       UMETA(DisplayName = "Alive"),
+	Dead        UMETA(DisplayName = "Dead")
 };
 
 class IVAN_API IVCharacterStateEnums

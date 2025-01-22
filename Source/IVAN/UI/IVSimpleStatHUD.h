@@ -22,6 +22,11 @@ public:
 	AIVSimpleStatHUD();
 	virtual void BeginPlay() override;
 
+// 사망 처리
+protected:
+	void OnPlayerDeath();
+	void OnPlayerAlive();
+
 // UI 관리
 protected:
 	/* 스텟 위젯 갱신을 위한 정보 습득용 컴포넌트 */

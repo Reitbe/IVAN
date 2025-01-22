@@ -11,12 +11,11 @@
 DECLARE_DELEGATE_OneParam(FBaseStatChangedDelegate, const FBaseStat&);
 
 class UCharacterMovementComponent;
+class UIVDeathEventSubsystem;
 
 /*
-* 캐릭터 정보를 관리하는 컴포넌트.
-* 움직임 정보, 체력(미구현) 등을 관리한다.
+* 캐릭터 동작 및 스탯 정보를 관리하는 컴포넌트.
 */
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class IVAN_API UIVCharacterStatComponent : public UActorComponent
 {
@@ -25,28 +24,32 @@ class IVAN_API UIVCharacterStatComponent : public UActorComponent
 // 기본
 public:	
 	UIVCharacterStatComponent();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-// 데미지 처리
-public:
-	/* 캐릭터의 TakeDamage 함수를 그대로 넘겨받아 데미지 처리*/
-	float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+// 정보 갱신 관련
+public: 
+	/* 캐릭터 사망, 부활 이벤트를 담당하는 글로벌 이벤트 서브시스템 */
+	TObjectPtr<UIVDeathEventSubsystem> LifeEventSubsystem;
 
-
-// 캐릭터 기본 스탯
-public:
-	/* 스탯 변경 시 정보 전달 담당 대리자 */
+	/* 캐릭터의 기본 스탯 변경 정보를 전달하는 대리자 */
 	FBaseStatChangedDelegate OnBaseStatChanged;
 
+private:
+	void SetDead();		// 사망 처리
+	void SetAlive();	// 부활 처리
+
+
+// 캐릭터 스탯 정보(체력, 스테미나, 데미지)
 protected:
+	/* 체력, 스테미나가 담긴 기본 스탯 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats");
 	FBaseStat BaseStat;
 
+	/* 기본 공격력, 추가 공력력, 방어력이 담긴 데미지 스텟*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats");
 	FBaseDamageStat BaseDamageStat;
 
@@ -64,10 +67,17 @@ public:
 	void SetBaseDamageStat(const FBaseDamageStat& NewBaseDamageStat);
 
 	FBaseStat GetBaseStat() const { return BaseStat; };
-
+	FBaseDamageStat GetBaseDamageStat() const { return BaseDamageStat; };
+	
 
 // 캐릭터 동작 상태 정보
 protected:
+	/* 점프와 움직임 정지 여부를 확인하기 위한 캐릭터 무브먼트 컴포넌트 */
+	TObjectPtr<UCharacterMovementComponent> CharacterMovementComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State");
+	ELifeState LifeState;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State");
 	EMovementState MovementState;
 
@@ -83,8 +93,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State");
 	ESpecialMovementState SpecialMovementState;
 	
-	/* 점프와 움직임 정지 여부를 확인하기 위한 캐릭터 무브먼트 컴포넌트 */
-	TObjectPtr<UCharacterMovementComponent> CharacterMovementComponent;
 
 // 캐릭터 상태 변경 및 획득
 public:
@@ -93,11 +101,19 @@ public:
 	void SetCharacterJumpState(EJumpState NewState) { JumpState = NewState; };
 	void SetCharacterTargetingState(ETargetingState NewState) { TargetingState = NewState; };
 	void SetCharacterSpecialMoveState(ESpecialMovementState NewState) { SpecialMovementState = NewState; };
+	void SetCharacterLifeState(ELifeState NewState) { LifeState = NewState; };
 
+	EMovementState GetCharacterMovementState() const { return MovementState; };
+	EGaitState GetCharacterGaitState() const { return GaitState; };
+	EJumpState GetCharacterJumpState() const { return JumpState; };
+	ETargetingState GetCharacterTargetingState() const { return TargetingState; };
+	ESpecialMovementState GetCharacterSpecialMovementState() const { return SpecialMovementState; };
+	ELifeState GetLifeState() const { return LifeState; };
+	
+
+// 데미지 처리
 public:
-	virtual EMovementState GetCharacterMovementState() const { return MovementState; };
-	virtual EGaitState GetCharacterGaitState() const { return GaitState; };
-	virtual EJumpState GetCharacterJumpState() const { return JumpState; };
-	virtual ETargetingState GetCharacterTargetingState() const { return TargetingState; };
-	virtual ESpecialMovementState GetCharacterSpecialMovementState() const { return SpecialMovementState; };
+	/* 캐릭터의 TakeDamage 함수를 그대로 넘겨받아 데미지 처리*/
+	float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+
 };

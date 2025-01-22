@@ -8,6 +8,7 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FMonsterDeathEventDelegate, AActor* /* 사망한 몬스터 */);
 DECLARE_MULTICAST_DELEGATE(FPlayerDeathEventDelegate);
+DECLARE_MULTICAST_DELEGATE(FPlayerRespawnEventDelegate);
 
 /**
  * 플레이어 캐릭터 및 몬스터의 사망 이벤트를 관리하는 서브시스템
@@ -24,4 +25,7 @@ public:
 
 	/* 플레이어가 죽었음을 알리는 대리자 */
 	FPlayerDeathEventDelegate PlayerDeathEventDelegate;
+
+	/* 플레이어가 부활했음을 알리는 대리자 */
+	FPlayerRespawnEventDelegate PlayerRespawnEventDelegate;
 };

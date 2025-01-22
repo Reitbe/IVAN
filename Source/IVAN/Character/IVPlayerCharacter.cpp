@@ -12,22 +12,34 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
+#include "IVAN/Stat/IVEquipComponent.h"
+#include "IVAN/Attack/IVHitReactionComponent.h"
+#include "IVAN/Attack/IVAttackComponent.h"
+#include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/Item/IVWeapon.h"
 
 AIVPlayerCharacter::AIVPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// 입력 관련 에셋들 초기화
+	// 입력 관련 에셋들 로드 및 초기화
 	InputConstructHelper();
 
-	// 몽타주 관련 에셋들 초기화
+	// 몽타주 관련 에셋들 로드 및 초기화
 	MontageConstructHelper();
+
+	// 장비 관리용 컴포넌트
+	EquipComponent = CreateDefaultSubobject<UIVEquipComponent>(TEXT("EquipComponent"));
 
 	// 모션 매칭용 추적 컴포넌트
 	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("CharacterTrajectoryComponent"));
 
 	// 캐릭터 스탯 상호작용을 위한 컴포넌트
 	CharacterStatComponent = CreateDefaultSubobject<UIVCharacterStatComponent>(TEXT("CharacterStatComponent"));
+
+	// 공격 및 피격 관련 컴포넌트
+	AttackComponent = CreateDefaultSubobject<UIVAttackComponent>(TEXT("AttackComponent"));
+	HitReactionComponent = CreateDefaultSubobject<UIVHitReactionComponent>(TEXT("HitReactionComponent"));
 
 	// 카메라 관련 컴포넌트 설정
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
@@ -172,12 +184,41 @@ void AIVPlayerCharacter::MontageConstructHelper()
 	);
 }
 
+void AIVPlayerCharacter::EquipByClass(TSubclassOf<AIVItemBase> Item) const
+{
+}
+
+void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
+{
+	// 전달받은 아이템을 지정 위치에 부착한다
+	if (Item)
+	{
+		/* 
+		* 아이템은 본인이 장착될 위치를 가지고 있다. 
+		* 현재는 임시로 플레이어 캐릭터의 특정 소켓을 사용한다.
+		*/
+		FName SocketName(TEXT("hand_rSocket"));
+		if (!GetMesh()->DoesSocketExist(SocketName))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
+			return;
+		}
+		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+	}
+
+	// 아이템이 무기라면 공격 컴포넌트에 무기를 설정한다
+	if (Item->GetItemType() == EItemType::Weapon && AttackComponent)
+	{
+		AttackComponent->SetWeapon(Cast<AIVWeapon>(Item));
+	}
+}
+
 void AIVPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	PlayerController = Cast<APlayerController>(GetController());
 
 	// 입력 컨텍스트 등록
-	PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController != nullptr)
 	{
 		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
@@ -187,16 +228,50 @@ void AIVPlayerCharacter::BeginPlay()
 		}
 	}
 
-	
+	// 사망 및 부활 이벤트를 서브시스템에 바인딩
+	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+	if (GameInstance)
+	{
+		UIVDeathEventSubsystem* DeathEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
+		if (DeathEventSubsystem)
+		{
+			DeathEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetDead);
+			DeathEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetAlive);
+		}
+	}
+
+	// 애님 인스턴스 설정
 	AnimInstance = GetMesh()->GetAnimInstance();
+	RollMontage.LoadSynchronous();
 
-	RollMontage.LoadSynchronous();		// 몽타주 로드
-	DodgeRightMontage.LoadSynchronous();// 미구현
-	DodgeLeftMontage.LoadSynchronous(); // 미구현
-	DodgeBackMontage.LoadSynchronous(); // 미구현
+	// 공격 및 피격 시스템에 애님 인스턴스 설정
+	if (AnimInstance)
+	{
+		HitReactionComponent->SetAnimInstance(AnimInstance);
+		AttackComponent->SetAnimInstance(AnimInstance);
+	}
 
-	// 캐릭터 속도 초기화
+	// 캐릭터 이동 속도 초기화
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+}
+
+TObjectPtr<AIVWeapon> AIVPlayerCharacter::GetWeapon() const
+{
+	// 장비 컴포넌트로부터 무기를 받아 전달한다
+	if (EquipComponent)
+	{
+		return EquipComponent->GetWeapon();
+	}
+	return nullptr;
+}
+
+void AIVPlayerCharacter::SetWeaponOnWeaponComponent(TObjectPtr<AIVWeapon> Weapon)
+{
+	// 장비 컴포넌트로부터 무기를 받아 공격 컴포넌트에 전달한다. 
+	if (AttackComponent)
+	{
+		AttackComponent->SetWeapon(EquipComponent->GetWeapon());
+	}
 }
 
 void AIVPlayerCharacter::Tick(float DeltaTime)
@@ -246,7 +321,7 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 
 void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 {
-	// 이미 특수 동작 중이거나 공중에 떠 있을 때는 실행하지 않는다.
+	// 이미 특수 동작 중이거나 공중에 떠 있을 때는 새로운 동작을 실행하지 않는다.
 	bool bInAir = GetCharacterMovement()->IsFalling();
 	bool bIsRolling = CharacterStatComponent->GetCharacterSpecialMovementState() == ESpecialMovementState::Rolling;
 
@@ -271,12 +346,12 @@ void AIVPlayerCharacter::RunWalkSwitch(const FInputActionValue& Value)
 {
 	if (CharacterStatComponent)
 	{
-		if (CharacterStatComponent->GetCharacterGaitState() == EGaitState::Run) // 달리기->걷기
+		if (CharacterStatComponent->GetCharacterGaitState() == EGaitState::Run) // 달리기 -> 걷기
 		{
 			CharacterStatComponent->SetCharacterGaitState(EGaitState::Walk);
 			GetCharacterMovement()->MaxWalkSpeed /= 2;
 		}
-		else // 걷기 -> 달리기
+		else																	// 걷기 -> 달리기
 		{
 			CharacterStatComponent->SetCharacterGaitState(EGaitState::Run);
 			GetCharacterMovement()->MaxWalkSpeed *= 2;
@@ -295,24 +370,64 @@ void AIVPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AIVPlayerCharacter::BasicAttack(const FInputActionValue& Value)
 {
-	// [임시구현] 캐릭터를 중심으로 구 범위에 있는 적에게 데미지를 준다. 그리고 그 범위를 표시한다.
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Basic Attack"));
-	UGameplayStatics::ApplyRadialDamage(this, 50.0f, GetActorLocation(), 300.0f, nullptr, TArray<AActor*>(), this, nullptr, true, ECC_Visibility);
-	DrawDebugSphere( // 데미지 범위 표시
-		GetWorld(),              // 월드 컨텍스트
-		GetActorLocation(),      // 중심 위치
-		300.0f,                  // 반경
-		12,                      // 세그먼트 수
-		FColor::Red,             // 색상
-		false,                   // 영구적으로 그릴지 여부
-		3.0f                     // 지속 시간 (초)
-	);
+	// 특수 동작 중이거나 공중에 떠 있을 때는 공격을 실행하지 않는다
+	bool bInAir = GetCharacterMovement()->IsFalling();
+	bool bInSpecialMove = CharacterStatComponent->GetCharacterSpecialMovementState() != ESpecialMovementState::None;
+	if (bInAir || bInSpecialMove) return; 
+	
+	// 스탯 컴포넌트로부터 캐릭터의 데미지 정보를 가져온다
+	FBaseDamageStat BaseDamageStat;
+	if (CharacterStatComponent)
+	{
+		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::Attacking); 
+		BaseDamageStat = CharacterStatComponent->GetBaseDamageStat();
+	}
+
+	// 가져온 캐릭터의 데미지 정보를 공격 컴포넌트에 전달한다
+	if(AttackComponent)
+	{
+		AttackComponent->Attack(BaseDamageStat);
+	}
+}
+
+void AIVPlayerCharacter::AttackEnd()
+{
+	if (CharacterStatComponent)
+	{
+		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
+	}
+
+	if (AttackComponent)
+	{
+		AttackComponent->AttackEnd();
+	}
+}
+
+void AIVPlayerCharacter::SetDead()
+{
+	Super::SetDead();
+
+	if (PlayerController)
+	{
+		DisableInput(PlayerController);
+	}
+}
+
+void AIVPlayerCharacter::SetAlive()
+{
+	Super::SetAlive();
+
+	if (PlayerController)
+	{
+		EnableInput(PlayerController);
+	}
 }
 
 float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// 캐릭터 스탯 컴포넌트에 데미지 전달
+	// 데미지 처리 및 피격 리액션 진행
 	CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
 	return 0.0f;
 }
 

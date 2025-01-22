@@ -10,23 +10,7 @@
 
 AIVANGameMode::AIVANGameMode()
 {
-	// 모션 매칭 에러로 인해 주석 처리
-	/*
-	static ConstructorHelpers::FClassFinder<AIVPlayerController> PlayerControllerClassFinder 
-	(TEXT("/Game/GameCore/PlayerControllers/BP_PlayerController.BP_PlayerController_C"));
-	if (PlayerControllerClassFinder.Class)
-	{
-		PlayerControllerClass = PlayerControllerClassFinder.Class;
-	}
-
-	static ConstructorHelpers::FClassFinder<AIVPlayerCharacter> DefaultPawnClassFinder
-	(TEXT("/Game/Characters/IVCharacters/BP_PlayerCharacter.BP_PlayerCharacter_C"));
-	if (DefaultPawnClassFinder.Class)
-	{
-		DefaultPawnClass = DefaultPawnClassFinder.Class;
-	}
-	*/
-
+	// DefaultPawnClasss는 모션 매칭 에러로 인해 생략
 	static ConstructorHelpers::FClassFinder<AIVSimpleStatHUD> DefaultHUDClassFinder
 	(TEXT("/Game/Widget/HUD_SimpleStat.HUD_SimpleStat_C"));
 	if (DefaultHUDClassFinder.Class)
@@ -40,14 +24,18 @@ void AIVANGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	// 플레이어 사망 이벤트 수신
-	UIVDeathEventSubsystem* DeathEventSubsystem = GetGameInstance()->GetSubsystem<UIVDeathEventSubsystem>();
-	if (DeathEventSubsystem)
+	UIVDeathEventSubsystem* LifeEventSubsystem = GetGameInstance()->GetSubsystem<UIVDeathEventSubsystem>();
+	if (LifeEventSubsystem)
 	{
-		DeathEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerDeath);
+		LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerDeath);
+		LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerAlive);
 	}
 }
 
 void AIVANGameMode::OnPlayerDeath()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("게임모드 - 플레이어 사망 수신."));
+}
+
+void AIVANGameMode::OnPlayerAlive()
+{
 }

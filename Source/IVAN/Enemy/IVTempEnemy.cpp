@@ -15,7 +15,7 @@ AIVTempEnemy::AIVTempEnemy()
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	RootComponent = BoxComponent;
 
-	// 위젯 출력용
+	// 체력 바 출력용 위젯 컴포넌트
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 
@@ -29,19 +29,17 @@ AIVTempEnemy::AIVTempEnemy()
 		WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
 	}
 
-	// 임시 스탯
+	// 체력 스탯 초기화
 	MaxHealth = 100.0f;
 	CurrentHealth = 100.0f;
 }
 
-// Called when the game starts or when spawned
 void AIVTempEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	HealthBar = Cast<UIVBaseStatBar>(WidgetComponent->GetUserWidgetObject());
 }
 
-// Called every frame
 void AIVTempEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -54,7 +52,6 @@ float AIVTempEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 		CurrentHealth -= Damage;
 		HealthBar->UpdateStatBar(MaxHealth, CurrentHealth);
 	}
-
 	return 0.0f;
 }
 

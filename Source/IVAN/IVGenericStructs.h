@@ -6,21 +6,24 @@
 #include "IVGenericStructs.generated.h"
 
 /**
- * 게임에 사용되는 구조체들을 모아놓은 클래스.
+ * 여러 클래스에서 접근 가능하도록 공통으로 사용되는 구조체들을 모아놓은 헤더파일
+ * 현재는 기본 스탯(HP, 스태미나)와 데미지 스텟을 정의
  */
 
-// 캐릭터, 아이템이 공동으로 사용하는 기본 스탯 구조체
+// 캐릭터, 아이템이 공통으로 사용하는 기본 스텟 구조체
 USTRUCT(BlueprintType) 
 struct FBaseStat
 {
     GENERATED_USTRUCT_BODY()
 
+    /* 체력*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float MaxHP;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float CurrentHP;
 
+    /* 스테미나 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float MaxStamina;
 
@@ -35,7 +38,7 @@ struct FBaseStat
 		CurrentStamina = 100.0f;
 	}
 
-	FBaseStat(float InMaxHP, float InCurrentHP, float InMaxStamina, float InCurrentStamina, float InBaseDamage, float InAdditionalDamage, float InDamageReduction)
+	FBaseStat(float InMaxHP, float InCurrentHP, float InMaxStamina, float InCurrentStamina)
 	{
 		MaxHP = InMaxHP;
 		CurrentHP = InCurrentHP;
@@ -43,7 +46,7 @@ struct FBaseStat
 		CurrentStamina = InCurrentStamina;
 	}
 
-    // 연산자 오버로딩은 멤버 초기화를 유지하도록 작성
+    /* 연산자 오버로딩 */
     FBaseStat operator+(const FBaseStat& Other) const
     {
         FBaseStat Result;
@@ -65,17 +68,21 @@ struct FBaseStat
     }
 };
 
+// 데미지 관련 스텟 구조체
 USTRUCT(BlueprintType)
 struct FBaseDamageStat
 {
     GENERATED_USTRUCT_BODY()
 
+    /* 해당 액터가 가진 기본 공격력 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float BaseDamage;
 
+    /* 특수 효과로 인해 일시적으로 증가한 추가 공격력 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float AdditionalDamage;
 
+    /* 방어력. 피격 시 데미지를 경감 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float DamageReduction;
 
@@ -86,14 +93,14 @@ struct FBaseDamageStat
         DamageReduction = 0.0f;
     }
 
-    FBaseDamageStat(float InMaxHP, float InCurrentHP, float InMaxStamina, float InCurrentStamina, float InBaseDamage, float InAdditionalDamage, float InDamageReduction)
+    FBaseDamageStat(float InBaseDamage, float InAdditionalDamage, float InDamageReduction)
     {
         BaseDamage = InBaseDamage;
         AdditionalDamage = InAdditionalDamage;
         DamageReduction = InDamageReduction;
     }
 
-    // 연산자 오버로딩은 멤버 초기화를 유지하도록 작성
+    /* 연산자 오버로딩 */
     FBaseDamageStat operator+(const FBaseDamageStat& Other) const
     {
         FBaseDamageStat Result;

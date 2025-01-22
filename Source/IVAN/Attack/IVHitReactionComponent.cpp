@@ -1,0 +1,95 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "IVHitReactionComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Kismet/KismetMathLibrary.h"
+
+UIVHitReactionComponent::UIVHitReactionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+
+	// 변수 초기화
+	bIsUsingHitReaction = true;
+	bIsUsingRagdoll = false;
+}
+
+void UIVHitReactionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void UIVHitReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+
+// AActor의 TakeDamage 정보를 그대로 가져와서 사용
+void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (!bIsUsingHitReaction || !GetOwner()) return; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
+
+	AActor* Owner = GetOwner(); // 피격 대상
+	float Angle = 0.0f;	 
+
+	// 공격 방향 계산
+	if(DamageCauser)
+	{
+		// 이후 연산을 위한 벡터 정규화
+		FVector CharacterFoward = Owner->GetActorForwardVector().GetSafeNormal();
+		FVector HitDirection = (DamageCauser->GetActorLocation() - Owner->GetActorLocation()).GetSafeNormal();
+
+		// 캐릭터 정면 기준 공격 방향 각도
+		/*
+		* DotProduct : 
+		*	내적을 통해 두 벡터 사이 각도 계산. A dot B = |A||B|cos(theta)에서 입력 벡터가 정규화 된 상태이므로
+		*	A dot B = cos(theta)가 된다. cos(theta) 범위는 -1 ~ 1이다.
+		* Acos :
+		*	내적을 통해 얻은 cos(theta)를 역함수인 Acos를 사용해 각도로 변환한다. 이 때 각도는 라디안이다.
+		* RadiansToDegrees :
+		*	앞서 얻은 라디안을 각도로 변환한다.
+		*/
+		Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(CharacterFoward, HitDirection)));
+
+		// 공격 방향 좌우 판단
+		/*
+		* CrossProduct :
+		*	캐릭터 정면을 기준으로 피격 방향과의 외적을 진행한다. 오른손 법칙에 따라
+		*	외적값이 양수라면 정면 기준 왼쪽 피격이고 음수라면 오른쪽 피격이다.
+		* Angle : 
+		*	정면 +-0도, 후면 +-180도를 기준으로 오른쪽(0~180), 왼쪽(-0~-180)범위이다.
+		*/
+		FVector CrossProduct = FVector::CrossProduct(CharacterFoward, HitDirection);
+		Angle *= (CrossProduct.Z > 0.0f) ? 1.0f : -1.0f;
+	}
+
+	// 방향에 따른 애니메이션 선택
+	if (AnimInstance)
+	{
+		PlayHitReactionMontage(Angle);
+	}
+}
+
+void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
+{
+	if (!AnimInstance) return;
+
+	// 각 90도씩 4방향 범위 판단
+	if (Angle >= -45.0f && Angle < 45.0f)
+	{
+		AnimInstance->Montage_Play(FrontHitMontage); // 정면
+	}
+	else if (Angle >= 45.0f && Angle < 135.0f)
+	{
+		AnimInstance->Montage_Play(RightHitMontage); // 오른쪽
+	}
+	else if (Angle >= -135.0f && Angle < -45.0f)
+	{
+		AnimInstance->Montage_Play(LeftHitMontage); // 왼쪽
+	}
+	else if (Angle >= 135.0f || Angle < -135.0f)
+	{
+		AnimInstance->Montage_Play(BackHitMontage); // 뒤쪽
+	}
+}
+

@@ -6,6 +6,7 @@
 #include "IVAN/UI/IVSimpleStatWidget.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
+#include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 
 AIVSimpleStatHUD::AIVSimpleStatHUD()
 {
@@ -44,4 +45,35 @@ void AIVSimpleStatHUD::BeginPlay()
 		CharacterStatComponent->OnBaseStatChanged.BindUObject(SimpleStatWidget, &UIVSimpleStatWidget::UpdatePlayerStatBars);
 	}
 
+	// 사망 이벤트 서브시스템 등록
+	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+	if (GameInstance)
+	{
+		UIVDeathEventSubsystem* LifeEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
+		if (LifeEventSubsystem)
+		{
+			LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerDeath);
+			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerAlive);
+		}
+	}
+
+}
+
+void AIVSimpleStatHUD::OnPlayerDeath()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("HUD - SetDead 호출"));
+
+	if(SimpleStatWidget)
+	{
+		SimpleStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AIVSimpleStatHUD::OnPlayerAlive()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("HUD - SetAlive 호출"));
+	if (SimpleStatWidget)
+	{
+		SimpleStatWidget->SetVisibility(ESlateVisibility::Visible);
+	}
 }

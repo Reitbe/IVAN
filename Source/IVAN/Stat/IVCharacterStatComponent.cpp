@@ -11,13 +11,17 @@ UIVCharacterStatComponent::UIVCharacterStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	
+	// 초기 상태 설정
 	MovementState = EMovementState::Idle;
 	GaitState = EGaitState::Walk;
 	JumpState = EJumpState::OnGround;
 	TargetingState = ETargetingState::NonTargeting;
+	LifeState = ELifeState::Alive;
 
+	// 초기 스탯 설정
 	BaseStat.MaxHP = 100.0f;
 	BaseStat.CurrentHP = BaseStat.MaxHP;
+	BaseDamageStat.BaseDamage = 20.0f;
 }
 
 void UIVCharacterStatComponent::BeginPlay()
@@ -30,6 +34,18 @@ void UIVCharacterStatComponent::BeginPlay()
 	{
 		IIIVCharacterComponentProvider* Provider = Cast<IIIVCharacterComponentProvider>(Owner);
 		CharacterMovementComponent = Provider->GetCharacterMovementComponent();
+	}
+
+	// 글로벌 이벤트 서브시스템을 통해 사망 및 부활 이벤트 제어
+	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+	if (GameInstance)
+	{
+		LifeEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
+		if (LifeEventSubsystem)
+		{
+			LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetDead);
+			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetAlive);
+		}
 	}
 }
 
@@ -49,10 +65,7 @@ void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("나 맞았어용"));
-
-	// 체력 감소 처리
-	DetachStat(FBaseStat(0.0f, Damage, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+	DetachStat(FBaseStat(0.0f, Damage, 0.0f, 0.0f)); // 체력 감소 처리
 
 	// 체력이 0 이하로 떨어지면 사망 처리
 	if (BaseStat.CurrentHP <= 0)
@@ -60,17 +73,33 @@ float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& Da
 		BaseStat.CurrentHP = FMath::Clamp(BaseStat.CurrentHP, 0.0f, BaseStat.MaxHP);
 
 		// 글로벌 이벤트 서브시스템을 통해 사망 이벤트 전달
-		UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-		if (GameInstance)
+		if(LifeEventSubsystem)
 		{
-			UIVDeathEventSubsystem* DeathEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
-			if (DeathEventSubsystem)
-			{
-				DeathEventSubsystem->PlayerDeathEventDelegate.Broadcast();
-			}
+			LifeEventSubsystem->PlayerDeathEventDelegate.Broadcast();
 		}
 	}
 	return 0.0f;
+}
+
+void UIVCharacterStatComponent::SetDead()
+{
+	LifeState = ELifeState::Dead;
+
+	// 2초 후 부활 브로드캐스트
+	FTimerHandle RespawnTimer;
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
+		{
+			if (LifeEventSubsystem)
+			{
+				LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
+			}
+		}, 2.0f, false);
+}
+
+void UIVCharacterStatComponent::SetAlive()
+{
+	LifeState = ELifeState::Alive;
+	SetBaseStat(FBaseStat(BaseStat.MaxHP, BaseStat.MaxHP, BaseStat.MaxStamina, BaseStat.MaxStamina)); // 체력 회복
 }
 
 void UIVCharacterStatComponent::AttachStat(const FBaseStat& OtherStat)
