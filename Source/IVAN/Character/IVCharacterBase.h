@@ -30,7 +30,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 // 스텟 시스템
+protected:
 	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
+
+// 사망 처리
+protected:
+	virtual void SetDead();
+	virtual void SetAlive();
 
 
 // 모듈형 의상 시스템(추후 분리)

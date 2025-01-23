@@ -65,3 +65,11 @@ void AIVCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 }
 
+void AIVCharacterBase::SetDead()
+{
+}
+
+void AIVCharacterBase::SetAlive()
+{
+}
+

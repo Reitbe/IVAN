@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "IVAN/UI/IVSimpleStatHUD.h"
 
 AIVPlayerController::AIVPlayerController()
 {
@@ -40,6 +41,9 @@ void AIVPlayerController::BeginPlay()
 	if (InputSubsystem != nullptr) {
 		InputSubsystem->AddMappingContext(InputMappingContext, 0); // 캐릭터는 Priority가 1이다
 	}
+
+	// HUD 획득
+	SimpleStatHUD = Cast<AIVSimpleStatHUD>(GetHUD());
 }
 
 void AIVPlayerController::SetupInputComponent()

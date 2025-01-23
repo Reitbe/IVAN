@@ -5,16 +5,11 @@
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h" 
 
-void UIVPlayerAnim::NativeInitializeAnimation()
-{
-	Super::NativeInitializeAnimation();
-}
-
 void UIVPlayerAnim::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	// 캐릭터와 스탯 컴포넌트의 데이터에 접근
+	// ABP소유자의 컴포넌트 획득
 	AActor* Owner = GetOwningActor();
 	if (Owner->Implements<UIIVCharacterComponentProvider>())
 	{
