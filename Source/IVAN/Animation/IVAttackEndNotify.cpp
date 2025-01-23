@@ -14,7 +14,7 @@ void UIVAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 		IIIVAttackEndInterface* AttackEndInterface = Cast<IIIVAttackEndInterface>(MeshComp->GetOwner());
 		if (AttackEndInterface)
 		{
-			AttackEndInterface->AttackEnd();
+			AttackEndInterface->AttackEnd(true); // 1회차 검사이므로 true 전달
 		}
 	}
 }

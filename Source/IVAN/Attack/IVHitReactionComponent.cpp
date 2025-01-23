@@ -4,6 +4,7 @@
 #include "IVHitReactionComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "IVAN/Interface/IIVHitReactionInterface.h"
 
 UIVHitReactionComponent::UIVHitReactionComponent()
 {
@@ -74,22 +75,38 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 {
 	if (!AnimInstance) return;
 
-	// 각 90도씩 4방향 범위 판단
+	UAnimMontage* HitReactionMontage = nullptr; // 재생할 몽타주
+
+	// 각 90도씩 4방향 범위 판단 후 재생할 몽타주 선택
 	if (Angle >= -45.0f && Angle < 45.0f)
 	{
-		AnimInstance->Montage_Play(FrontHitMontage); // 정면
+		HitReactionMontage = FrontHitMontage; // 정면
 	}
 	else if (Angle >= 45.0f && Angle < 135.0f)
 	{
-		AnimInstance->Montage_Play(RightHitMontage); // 오른쪽
+		HitReactionMontage = RightHitMontage; // 오른쪽
 	}
 	else if (Angle >= -135.0f && Angle < -45.0f)
 	{
-		AnimInstance->Montage_Play(LeftHitMontage); // 왼쪽
+		HitReactionMontage = LeftHitMontage; // 왼쪽
 	}
 	else if (Angle >= 135.0f || Angle < -135.0f)
 	{
-		AnimInstance->Montage_Play(BackHitMontage); // 뒤쪽
+		HitReactionMontage = BackHitMontage; // 뒤쪽
 	}
+
+	AnimInstance->Montage_Play(HitReactionMontage); // 몽타주 재생
+
+	// 피격 애니메이션 종료 시 오너의 피격 리액션 종료
+	FOnMontageBlendingOutStarted BlendingOutDelegate;
+	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+		{
+			IIIVHitReactionInterface* HitReactionInterface = Cast<IIIVHitReactionInterface>(GetOwner());
+			if (HitReactionInterface)
+			{
+				HitReactionInterface->EndHitReaction();
+			}
+		});
+	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, HitReactionMontage);
 }
 

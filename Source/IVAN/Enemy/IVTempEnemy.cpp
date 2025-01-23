@@ -25,13 +25,14 @@ AIVTempEnemy::AIVTempEnemy()
 	if (WidgetFinder.Class)
 	{
 		WidgetComponent->SetWidgetClass(WidgetFinder.Class);
-		WidgetComponent->SetDrawSize(FVector2D(200.0f, 30.0f));
+		WidgetComponent->SetDrawSize(FVector2D(100.0f, 15.0f));
 		WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
+		WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	}
 
 	// 체력 스탯 초기화
-	MaxHealth = 100.0f;
-	CurrentHealth = 100.0f;
+	MaxHealth = 500.0f;
+	CurrentHealth = 500.0f;
 }
 
 void AIVTempEnemy::BeginPlay()

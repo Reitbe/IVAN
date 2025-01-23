@@ -8,6 +8,7 @@
 #include "IVAN/Interface/IIVAttackEndInterface.h"
 #include "IVAN/Interface/IIVWeaponProvider.h"
 #include "IVAN/Interface/IIVEquipInterface.h"
+#include "IVAN/Interface/IIVHitReactionInterface.h"
 #include "InputActionValue.h"
 #include "IVPlayerCharacter.generated.h"
 
@@ -33,6 +34,7 @@ class IVAN_API AIVPlayerCharacter
 	,public IIIVWeaponProvider
 	,public IIIVAttackEndInterface
 	,public IIIVEquipInterface
+	,public IIIVHitReactionInterface
 {
 	GENERATED_BODY()
 
@@ -92,6 +94,7 @@ protected:
 
 	/* 공격 */
 	void BasicAttack(const FInputActionValue& Value);	// 기본 공격
+	uint8 bAttackEndChecked : 1;						// 공격 종료 체크는 1~2번 처리된다. 회차 표시용.
 	
 private:
 	/* 입력 관련 에셋들 로드 및 초기화 헬퍼 */
@@ -164,10 +167,14 @@ public:
 	virtual TObjectPtr<AIVWeapon> GetWeapon() const override; 
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
-	virtual void AttackEnd() override; 
+	virtual void AttackEnd(bool bIsFirstCheck) override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
 	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;
 	virtual void EquipByInstance(TObjectPtr<AIVItemBase> Item) const override;
+
+	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
+	virtual void StartHitReaction() override;
+	virtual void EndHitReaction() override;
 
 };

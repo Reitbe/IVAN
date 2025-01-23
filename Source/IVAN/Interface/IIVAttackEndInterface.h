@@ -22,5 +22,5 @@ class IVAN_API IIIVAttackEndInterface
 	GENERATED_BODY()
 
 public:
-	virtual void AttackEnd() = 0;
+	virtual void AttackEnd(bool bIsFirstCheck) = 0;
 };

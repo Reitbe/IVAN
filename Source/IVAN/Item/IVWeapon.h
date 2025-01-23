@@ -9,6 +9,7 @@
 
 class UCapsuleComponent;
 class UParticleSystem;
+class UStaticMesh;
 
 /**
  * 아이템을 상속받은 무기 클래스.
@@ -40,6 +41,10 @@ private:
 
 // 무기 상세 정보
 protected:
+	/* 무기 외형 스테틱 메시 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+
 	/* 무기 데미지 스텟 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
 	FBaseDamageStat DamageStat;
@@ -73,8 +78,8 @@ protected:
 	* 충돌 판정에 활용할 콜라이더 목록 
 	* 실제 충돌 판정은 콜라이더의 위치와 방향, 크기를 기준으로 Trace를 진행한다.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit Detection")
-	TArray<TObjectPtr<UCapsuleComponent>> HitColliders;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	TObjectPtr<UCapsuleComponent> HitCollider;
 
 	/* 무기와 충돌한 액터 목록 */
 	TArray<TObjectPtr<AActor>> HitActors;

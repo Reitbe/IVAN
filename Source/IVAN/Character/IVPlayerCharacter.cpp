@@ -213,6 +213,25 @@ void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 	}
 }
 
+void AIVPlayerCharacter::StartHitReaction()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
+	if (CharacterStatComponent)
+	{
+		// 어떠한 상태더라도 피격 상태로 변경
+		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::HitStunned);
+	}
+}
+
+void AIVPlayerCharacter::EndHitReaction()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	if (CharacterStatComponent)
+	{
+		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
+	}
+}
+
 void AIVPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -323,9 +342,9 @@ void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 {
 	// 이미 특수 동작 중이거나 공중에 떠 있을 때는 새로운 동작을 실행하지 않는다.
 	bool bInAir = GetCharacterMovement()->IsFalling();
-	bool bIsRolling = CharacterStatComponent->GetCharacterSpecialMovementState() == ESpecialMovementState::Rolling;
+	bool bInSpecialMove = CharacterStatComponent->GetCharacterSpecialMovementState() != ESpecialMovementState::None;
 
-	if (!bInAir && !bIsRolling) 
+	if (!bInAir && !bInSpecialMove)
 	{
 		if (AnimInstance && CharacterStatComponent)
 		{
@@ -390,12 +409,28 @@ void AIVPlayerCharacter::BasicAttack(const FInputActionValue& Value)
 	}
 }
 
-void AIVPlayerCharacter::AttackEnd()
+void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 {
 	if (CharacterStatComponent)
 	{
-		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
-	}
+		// 정상적으로 몽타주가 종료되어 종료 노티파이가 호출된 경우 -> 2회차 검사 생략
+		if (bIsFirstCheck)
+		{
+			CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
+			bAttackEndChecked = true;
+		}
+		// 2회차 검사는 1회차 검사 여부와 관계 없이 항상 진행
+		else
+		{
+			// 1회차를 패스하고 2회차 검사를 진행하는 경우
+			if (!bAttackEndChecked)
+			{
+				CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
+			}
+			// 1회차 검사를 통과한 경우 -> 패스
+			bAttackEndChecked = false; // 2회차 검사가 끝나면 항상 공격 종료 체크를 초기화해야한다.  
+		}
+	}	
 
 	if (AttackComponent)
 	{
@@ -428,6 +463,7 @@ float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEve
 	// 데미지 처리 및 피격 리액션 진행
 	CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
+	StartHitReaction();
 	return 0.0f;
 }
 

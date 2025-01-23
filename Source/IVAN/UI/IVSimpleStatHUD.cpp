@@ -61,7 +61,6 @@ void AIVSimpleStatHUD::BeginPlay()
 
 void AIVSimpleStatHUD::OnPlayerDeath()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("HUD - SetDead 호출"));
 
 	if(SimpleStatWidget)
 	{
@@ -71,7 +70,6 @@ void AIVSimpleStatHUD::OnPlayerDeath()
 
 void AIVSimpleStatHUD::OnPlayerAlive()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("HUD - SetAlive 호출"));
 	if (SimpleStatWidget)
 	{
 		SimpleStatWidget->SetVisibility(ESlateVisibility::Visible);

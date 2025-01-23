@@ -12,6 +12,8 @@ UIVEquipComponent::UIVEquipComponent()
 
 void UIVEquipComponent::BeginPlay()
 {
+	Super::BeginPlay();
+	EquipWeapon();
 }
 
 void UIVEquipComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
