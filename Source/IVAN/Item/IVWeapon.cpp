@@ -100,6 +100,18 @@ void AIVWeapon::HitDetection()
 			}
 		}
 	}
+
+	// 궤적 확인용 디버그 콜라이더 생성
+	DrawDebugCapsule(
+		GetWorld(), 
+		Start, 
+		CollisionShape.GetCapsuleHalfHeight(), 
+		CollisionShape.GetCapsuleRadius(), 
+		Rotation, FColor::Red, 
+		false, 
+		1.0f);
+
+
 }
 
 void AIVWeapon::ClearHitActors()

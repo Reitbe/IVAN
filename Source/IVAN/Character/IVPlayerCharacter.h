@@ -19,9 +19,9 @@ class UAnimInstance;
 class USpringArmComponent;
 class UCameraComponent;
 class UCharacterTrajectoryComponent;
+class UIVCharacterStatComponent;
 class UIVHitReactionComponent;
 class UIVAttackComponent;
-class UIVEquipComponent;
 
 /**
  * 인게임 플레이어 캐릭터 클래스
@@ -46,16 +46,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+private:
 	/* 캐릭터 플레이어 컨트롤러*/
 	TObjectPtr<APlayerController> PlayerController;
 
 
+// 스텟 시스템
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
+	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
+
+
 // 장비 관련
 public:
-	/* 캐릭터 장비 관리 컴포넌트 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")
-	TObjectPtr<UIVEquipComponent> EquipComponent;
-
 	/* 공격 컴포넌트에 무기 인스턴스 전달 */
 	void SetWeaponOnWeaponComponent(TObjectPtr<AIVWeapon> Weapon);
 

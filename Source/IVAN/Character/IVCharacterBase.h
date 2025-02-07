@@ -6,8 +6,9 @@
 #include "GameFramework/Character.h"
 #include "IVCharacterBase.generated.h"
 
+class UIVEquipComponent;
 class USkeletalMeshComponent;
-class UIVCharacterStatComponent;
+
 
 /*
 * 다양한 캐릭터들의 기본이 되는 클래스.
@@ -29,9 +30,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-// 스텟 시스템
-protected:
-	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
 
 // 사망 처리
 protected:
@@ -39,7 +37,12 @@ protected:
 	virtual void SetAlive();
 
 
-// 모듈형 의상 시스템(추후 분리)
+// 장비 관련
+public:
+	/* 캐릭터 장비 관리 컴포넌트 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")
+	TObjectPtr<UIVEquipComponent> EquipComponent;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularSkin", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> HelmMesh;

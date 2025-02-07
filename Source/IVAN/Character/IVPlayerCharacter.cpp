@@ -34,7 +34,7 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	// 모션 매칭용 추적 컴포넌트
 	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("CharacterTrajectoryComponent"));
 
-	// 캐릭터 스탯 상호작용을 위한 컴포넌트
+	// 스탯 컴포넌트 추가
 	CharacterStatComponent = CreateDefaultSubobject<UIVCharacterStatComponent>(TEXT("CharacterStatComponent"));
 
 	// 공격 및 피격 관련 컴포넌트
@@ -460,6 +460,8 @@ void AIVPlayerCharacter::SetAlive()
 
 float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
 	// 데미지 처리 및 피격 리액션 진행
 	CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);

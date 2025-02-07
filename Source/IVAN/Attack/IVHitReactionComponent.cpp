@@ -37,7 +37,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 	if(DamageCauser)
 	{
 		// 이후 연산을 위한 벡터 정규화
-		FVector CharacterFoward = Owner->GetActorForwardVector().GetSafeNormal();
+		FVector CharacterFoward = Owner->GetActorForwardVector().GetSafeNormal(); // 이미 정규화 되어있긴 하다
 		FVector HitDirection = (DamageCauser->GetActorLocation() - Owner->GetActorLocation()).GetSafeNormal();
 
 		// 캐릭터 정면 기준 공격 방향 각도
@@ -56,7 +56,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 		/*
 		* CrossProduct :
 		*	캐릭터 정면을 기준으로 피격 방향과의 외적을 진행한다. 오른손 법칙에 따라
-		*	외적값이 양수라면 정면 기준 왼쪽 피격이고 음수라면 오른쪽 피격이다.
+		*	외적값이 양수라면 공격자가 오른 쪽, 음수라면 왼쪽에서 공격을 받았다고 판단한다.
 		* Angle : 
 		*	정면 +-0도, 후면 +-180도를 기준으로 오른쪽(0~180), 왼쪽(-0~-180)범위이다.
 		*/
