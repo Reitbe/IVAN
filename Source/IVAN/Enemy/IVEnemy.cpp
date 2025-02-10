@@ -71,11 +71,38 @@ void AIVEnemy::BeginPlay()
 			MonsterStatComponent->OnHpChanged.BindUObject(HealthBar, &UIVBaseStatBar::UpdateStatBar);
 		}
 	}
+
+	// 몬스터 사망 이벤트 바인딩
+	if (MonsterStatComponent)
+	{
+		MonsterStatComponent->OnMonsterDeathLocalEvent.AddUObject(this, &AIVEnemy::SetDead);
+	}
 }
 
 void AIVEnemy::SetDead()
 {
 	Super::SetDead();
+
+	// 사망 애니메이션 재생 -> 래그돌로 대체
+	//if (HitReactionComponent)
+	//{
+	//	HitReactionComponent->PlayDeathMontage();
+	//}
+
+	// 래그돌 처리
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetSimulatePhysics(true);
+
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
+	GetMesh()->bBlendPhysics = true;
+
+	// UI 처리
+	if (HealthBar)
+	{
+		HealthBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void AIVEnemy::SetAlive()
@@ -87,22 +114,25 @@ float AIVEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AContr
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	
-	// AI컨트롤러에 피격 이벤트 전달
-	IIIVAIControllerBasicCombat* AIController = Cast<IIIVAIControllerBasicCombat>(GetController());
-	if (AIController)
-	{
-		AActor* Attacker = EventInstigator ? EventInstigator->GetPawn() : nullptr;
-		if (Attacker)
-		{
-			AIController->OnHit(Attacker);
-		}
-	}
 
 	// 피격 이벤트 처리
-	MonsterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-	HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
-	
-
+	if (MonsterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser))
+	{
+		// 피격 과정에서 공격 종료가 먼저 호출되도록 if문에서 진행
+		if (HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser))
+		{
+			// AI컨트롤러에 피격 이벤트 전달
+			IIIVAIControllerBasicCombat* AIController = Cast<IIIVAIControllerBasicCombat>(GetController());
+			if (AIController)
+			{
+				AActor* Attacker = EventInstigator ? EventInstigator->GetPawn() : nullptr;
+				if (Attacker)
+				{
+					AIController->OnHit(Attacker);
+				}
+			}
+		}
+	}
 	return 0.0f;
 }
 
@@ -118,7 +148,10 @@ TObjectPtr<AIVWeapon> AIVEnemy::GetWeapon() const
 
 void AIVEnemy::AttackEnd(bool bIsFirstCheck)
 {
-	// AI 컨트롤러에 공격 종료 전달
+	// Notify에 의한 공격 종료는 플레이어의 콤보를 위한 것
+	if (bIsFirstCheck) return;
+
+	// 몽타주가 중간에 끊기거나(피격) 온전히 끝난 경우에만 AI 컨트롤러에 공격 종료 전달
 	IIIVAIControllerBasicCombat* AIController = Cast<IIIVAIControllerBasicCombat>(GetController());
 	if (AIController)
 	{
@@ -168,6 +201,14 @@ void AIVEnemy::EndHitReaction()
 	{
 		AIController->OnHitEnd();
 	}
+}
+
+void AIVEnemy::EndDeathReaction()
+{
+	// 래그돌
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 void AIVEnemy::ExecuteBasicAttack()

@@ -23,14 +23,20 @@ class IVAN_API AIVAIController : public AAIController, public IIIVAIControllerBa
 {
 	GENERATED_BODY()
 
+// 기본
 public:
 	AIVAIController();
 
-	void RunAI();
-	void StopAI();
-
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
+
+
+// AI 동작 기본
+protected:
+	void RunAI();
+	void StopAI();
+	void SetDead();
+
 
 // AI 인지 컴포넌트
 protected:
@@ -45,6 +51,7 @@ protected:
 	/* 시각 정보 */
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
+
 // 행동 트리 & 블랙보드
 protected:
 	/* 에디터에서 지정 */
@@ -54,6 +61,7 @@ protected:
 	/* 에디터에서 지정 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	TObjectPtr<UBlackboardData> BlackboardAsset;
+
 
 // 인터페이스 구현
 public:

@@ -36,4 +36,8 @@ protected:
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UIVSimpleStatWidget> SimpleStatWidgetClass;
 	TObjectPtr< UIVSimpleStatWidget> SimpleStatWidget;
+	
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UUserWidget> DeathWidgetClass;
+	TObjectPtr<UUserWidget> DeathWidget;
 };

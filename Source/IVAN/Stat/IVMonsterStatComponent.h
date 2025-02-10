@@ -8,6 +8,8 @@
 #include "IVMonsterStatComponent.generated.h"
 
 DECLARE_DELEGATE_TwoParams(FHpChangedDelegate, const float /*MaxHp*/, const float /*CurrentHp*/);
+DECLARE_MULTICAST_DELEGATE(FMonsterDeathLocalDelegate);
+DECLARE_MULTICAST_DELEGATE(FMonsterReviveLocalDelegate);
 
 class UCharacterMovementComponent;
 
@@ -30,6 +32,12 @@ protected:
 
 // 정보 갱신 관련
 public:
+	/* 사망 이벤트 관리용 대리자 */
+	FMonsterDeathLocalDelegate OnMonsterDeathLocalEvent;
+
+	/* 부활 이벤트 관리용 대리자 */
+	FMonsterReviveLocalDelegate OnMonsterReviveLocalEvent;
+
 	/* 체력 변경 정보를 전달하는 대리자 */
 	FHpChangedDelegate OnHpChanged;
 
@@ -66,5 +74,5 @@ public:
 
 // 데미지 처리
 public:
-	virtual float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	virtual bool TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };

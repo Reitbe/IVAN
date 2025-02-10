@@ -26,9 +26,9 @@ void UIVHitReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 }
 
 // AActor의 TakeDamage 정보를 그대로 가져와서 사용
-void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (!bIsUsingHitReaction || !GetOwner()) return; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
+	if (!bIsUsingHitReaction || !GetOwner()) return false; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
 
 	AActor* Owner = GetOwner(); // 피격 대상
 	float Angle = 0.0f;	 
@@ -69,6 +69,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 	{
 		PlayHitReactionMontage(Angle);
 	}
+	return true;
 }
 
 void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
@@ -108,5 +109,23 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 			}
 		});
 	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, HitReactionMontage);
+}
+
+void UIVHitReactionComponent::PlayDeathMontage()
+{
+	if (!AnimInstance || !DeathMontage) return;
+	AnimInstance->Montage_Play(DeathMontage); // 사망 몽타주 재생
+
+	// 몽타주 종료 시 레그돌로 전환
+	FOnMontageBlendingOutStarted BlendingOutDelegate;
+	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+		{
+			IIIVHitReactionInterface* HitReactionInterface = Cast<IIIVHitReactionInterface>(GetOwner());
+			if (HitReactionInterface)
+			{
+				HitReactionInterface->EndDeathReaction();
+			}
+		});
+	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, DeathMontage);
 }
 

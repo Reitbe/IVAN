@@ -10,6 +10,7 @@
 #include "IVAN/Interface/IIVHitReactionInterface.h"
 #include "IVAN/Interface/IIVAICharacterBasicCombat.h"
 #include "IVAN/Interface/IIVAIControllerBasicCombat.h"
+#include "IVAN/Interface/IIVMonsterComponentProvider.h"
 #include "IVEnemy.generated.h"
 
 class UIVHitReactionComponent;
@@ -29,6 +30,7 @@ class IVAN_API AIVEnemy
 	, public IIIVEquipInterface
 	, public IIIVHitReactionInterface
 	, public IIIVAICharacterBasicCombat
+	, public IIIVMonsterComponentProvider
 {
 	GENERATED_BODY()
 
@@ -98,7 +100,11 @@ public:
 	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
 	virtual void StartHitReaction() override;
 	virtual void EndHitReaction() override;
+	virtual void EndDeathReaction() override;
 
 	/* IIIVAICharacterBasicCombat 인터페이스->기본 공격용 */
 	virtual void ExecuteBasicAttack() override;
+
+	/* IIIVMonsterComponentProvider 인터페이스->몬스터 스탯 컴포넌트 접근용 */
+	virtual UIVMonsterStatComponent* GetMonsterStatComponent() const override { return MonsterStatComponent; };
 };

@@ -17,6 +17,14 @@ AIVSimpleStatHUD::AIVSimpleStatHUD()
 	{
 		SimpleStatWidgetClass = SimpleStatWidgetClassFinder.Class;
 	}
+
+	// 사망 시 표시할 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UUserWidget> DeathWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_YouDie.WBP_YouDie_C"));
+	if (DeathWidgetClassFinder.Class)
+	{
+		DeathWidgetClass = DeathWidgetClassFinder.Class;
+	}
 }
 
 void AIVSimpleStatHUD::BeginPlay()
@@ -31,11 +39,19 @@ void AIVSimpleStatHUD::BeginPlay()
 		CharacterStatComponent = Provider->GetCharacterStatComponent();
 	}
 
+	// 사망 시 표시할 위젯 생성
+	if (DeathWidgetClass)
+	{
+		DeathWidget = CreateWidget<UUserWidget>(GetWorld(), DeathWidgetClass);
+		DeathWidget->AddToViewport(1); // 앞에 배치
+		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	// 플레이어 스텟 표시용 위젯 생성
 	if (SimpleStatWidgetClass)
 	{
 		SimpleStatWidget = CreateWidget<UIVSimpleStatWidget>(GetWorld(), SimpleStatWidgetClass);
-		SimpleStatWidget->AddToViewport();
+		SimpleStatWidget->AddToViewport(0); // 뒤에 배치
 		SimpleStatWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 
@@ -61,17 +77,30 @@ void AIVSimpleStatHUD::BeginPlay()
 
 void AIVSimpleStatHUD::OnPlayerDeath()
 {
-
+	// 플레이어 스탯 위젯 숨기고
 	if(SimpleStatWidget)
 	{
 		SimpleStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 사망 위젯 만들어서 띄우기
+	if (DeathWidget)
+	{
+		DeathWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
 void AIVSimpleStatHUD::OnPlayerAlive()
 {
+	// 플레이어 스탯 위젯 띄우고
 	if (SimpleStatWidget)
 	{
 		SimpleStatWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	// 사망 위젯 제거하기
+	if (DeathWidget)
+	{
+		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

@@ -17,6 +17,7 @@
 #include "IVAN/Attack/IVAttackComponent.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 #include "IVAN/Item/IVWeapon.h"
+#include "Components/CapsuleComponent.h"
 
 AIVPlayerCharacter::AIVPlayerCharacter()
 {
@@ -68,12 +69,12 @@ void AIVPlayerCharacter::InputConstructHelper()
 		BasicAttackAction = BasicAttackActionFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> SpecialAttackFinder
-	(TEXT(""));
-	if (SpecialAttackFinder.Succeeded())
-	{
-		SpecialAttack = SpecialAttackFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> SpecialAttackFinder
+	//(TEXT(""));
+	//if (SpecialAttackFinder.Succeeded())
+	//{
+	//	SpecialAttack = SpecialAttackFinder.Object;
+	//}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> BasicMovementFinder
 	(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
@@ -110,54 +111,54 @@ void AIVPlayerCharacter::InputConstructHelper()
 		LookAction = LookActionFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> TargetActionFinder
-	(TEXT(""));
-	if (TargetActionFinder.Succeeded())
-	{
-		TargetAction = TargetActionFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> TargetActionFinder
+	//(TEXT(""));
+	//if (TargetActionFinder.Succeeded())
+	//{
+	//	TargetAction = TargetActionFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionFinder
-	(TEXT(""));
-	if (InteractActionFinder.Succeeded())
-	{
-		InteractAction = InteractActionFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionFinder
+	//(TEXT(""));
+	//if (InteractActionFinder.Succeeded())
+	//{
+	//	InteractAction = InteractActionFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> DefendActionFinder
-	(TEXT(""));
-	if (DefendActionFinder.Succeeded())
-	{
-		DefendAction = DefendActionFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> DefendActionFinder
+	//(TEXT(""));
+	//if (DefendActionFinder.Succeeded())
+	//{
+	//	DefendAction = DefendActionFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> UseFirstItemSlotFinder
-	(TEXT(""));
-	if (UseFirstItemSlotFinder.Succeeded())
-	{
-		UseFirstItemSlot = UseFirstItemSlotFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> UseFirstItemSlotFinder
+	//(TEXT(""));
+	//if (UseFirstItemSlotFinder.Succeeded())
+	//{
+	//	UseFirstItemSlot = UseFirstItemSlotFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> UseSecondItemSlotFinder
-	(TEXT(""));
-	if (UseSecondItemSlotFinder.Succeeded())
-	{
-		UseSecondItemSlot = UseSecondItemSlotFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> UseSecondItemSlotFinder
+	//(TEXT(""));
+	//if (UseSecondItemSlotFinder.Succeeded())
+	//{
+	//	UseSecondItemSlot = UseSecondItemSlotFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> UseThirdItemSlotFinder
-	(TEXT(""));
-	if (UseThirdItemSlotFinder.Succeeded())
-	{
-		UseThirdItemSlot = UseThirdItemSlotFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> UseThirdItemSlotFinder
+	//(TEXT(""));
+	//if (UseThirdItemSlotFinder.Succeeded())
+	//{
+	//	UseThirdItemSlot = UseThirdItemSlotFinder.Object;
+	//}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> UseFourthItemSlotFinder
-	(TEXT(""));
-	if (UseFourthItemSlotFinder.Succeeded())
-	{
-		UseFourthItemSlot = UseFourthItemSlotFinder.Object;
-	}
+	//static ConstructorHelpers::FObjectFinder<UInputAction> UseFourthItemSlotFinder
+	//(TEXT(""));
+	//if (UseFourthItemSlotFinder.Succeeded())
+	//{
+	//	UseFourthItemSlot = UseFourthItemSlotFinder.Object;
+	//}
 }
 
 void AIVPlayerCharacter::MontageConstructHelper()
@@ -230,6 +231,14 @@ void AIVPlayerCharacter::EndHitReaction()
 	{
 		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
 	}
+}
+
+void AIVPlayerCharacter::EndDeathReaction()
+{
+	// 애니메이션 종료 후 래그돌 처리
+	//GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	//GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	//GetMesh()->SetSimulatePhysics(true);
 }
 
 void AIVPlayerCharacter::BeginPlay()
@@ -361,7 +370,7 @@ void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 	}
 }
 
-void AIVPlayerCharacter::RunWalkSwitch(const FInputActionValue& Value)
+void AIVPlayerCharacter::RunWalkSwitch()
 {
 	if (CharacterStatComponent)
 	{
@@ -442,20 +451,63 @@ void AIVPlayerCharacter::SetDead()
 {
 	Super::SetDead();
 
-	if (PlayerController)
+	// 모든 몽타주 중지
+	if (AnimInstance)
 	{
-		DisableInput(PlayerController);
+		AnimInstance->Montage_Stop(0.0f);
 	}
+
+	// 달리기 상태 초기화
+	if (CharacterStatComponent->GetCharacterGaitState() == EGaitState::Run)
+	{
+		RunWalkSwitch();
+	}
+
+	// 물리 시뮬레이션 활성화
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
+	GetMesh()->bBlendPhysics = true;
+
+	// 콜리전 비활성화
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+
+	// 무브먼트 중지
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
 }
 
 void AIVPlayerCharacter::SetAlive()
 {
 	Super::SetAlive();
 
+	GetMesh()->SetCollisionProfileName(TEXT("Player"));
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->SetAllBodiesSimulatePhysics(false);
+	GetMesh()->SetAllBodiesPhysicsBlendWeight(0.0f);
+	GetMesh()->bBlendPhysics = false;
+
+	// 루트와 메시 정렬
+	GetMesh()->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
+	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+
+	// 무브먼트 재개
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+	// 입력 활성화도 혹시나 다시 적용(플컨에서 하긴 한다)
 	if (PlayerController)
 	{
 		EnableInput(PlayerController);
 	}
+
+	// 캡슐도 혹시나 다시 적용
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SetActorEnableCollision(true);
 }
 
 float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -463,9 +515,16 @@ float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEve
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
 	// 데미지 처리 및 피격 리액션 진행
-	CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-	HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
-	StartHitReaction();
+	if (CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser))
+	{
+		// 그저 데미지만 입은 경우에는 피격 리액션만 진행
+		HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
+		StartHitReaction();
+	}
+	else
+	{
+		// 사망
+	}
 	return 0.0f;
 }
 

@@ -53,7 +53,7 @@ void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
-float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
@@ -69,8 +69,9 @@ float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& Da
 		{
 			LifeEventSubsystem->PlayerDeathEventDelegate.Broadcast();
 		}
+		return false;
 	}
-	return 0.0f;
+	return true;
 }
 
 void UIVCharacterStatComponent::SetDead()
@@ -80,21 +81,27 @@ void UIVCharacterStatComponent::SetDead()
 	LifeState = ELifeState::Dead;
 
 	// 2초 후 부활 브로드캐스트
-	FTimerHandle RespawnTimer;
-	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
-		{
-			if (LifeEventSubsystem)
-			{
-				LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
-			}
-		}, 2.0f, false);
+	//FTimerHandle RespawnTimer;
+	//GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
+	//	{
+	//		if (LifeEventSubsystem)
+	//		{
+	//			LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
+	//		}
+	//	}, 2.0f, false);
 }
 
 void UIVCharacterStatComponent::SetAlive()
 {
 	Super::SetAlive();
 
+	//GaitState = EGaitState::Walk; // 캐릭터 속도 초기화와 함께 GaitState도 초기화 진행
+	//TargetingState = ETargetingState::NonTargeting; // 캐릭터와 함께 TargetingState도 초기화 진행
+	MovementState = EMovementState::Idle;
+	JumpState = EJumpState::OnGround;
+	SpecialMovementState = ESpecialMovementState::None;
 	LifeState = ELifeState::Alive;
+
 	SetBaseStat(FBaseStat(BaseStat.MaxHP, BaseStat.MaxHP, BaseStat.MaxStamina, BaseStat.MaxStamina)); // 체력 회복
 }
 

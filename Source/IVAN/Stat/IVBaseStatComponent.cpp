@@ -72,9 +72,9 @@ void UIVBaseStatComponent::SetBaseDamageStat(const FBaseDamageStat& NewBaseDamag
 	BaseDamageStat = NewBaseDamageStat;
 }
 
-float UIVBaseStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVBaseStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	return 0.0f;
+	return true;
 }
 
 void UIVBaseStatComponent::SetDead()

@@ -16,16 +16,21 @@ void UIVMonsterStatComponent::TickComponent(float DeltaTime, ELevelTick TickType
 void UIVMonsterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 사망 이벤트 바인딩
+	OnMonsterDeathLocalEvent.AddUObject(this, &UIVMonsterStatComponent::SetDead);
 }
 
 void UIVMonsterStatComponent::SetDead()
 {
 	Super::SetDead();
+	EMonsterState NewState = EMonsterState::Dead;
 }
 
 void UIVMonsterStatComponent::SetAlive()
 {
 	Super::SetAlive();
+	EMonsterState NewState = EMonsterState::Idle;
 }
 
 void UIVMonsterStatComponent::AttachStat(const FBaseStat& OtherStat)
@@ -46,7 +51,7 @@ void UIVMonsterStatComponent::SetBaseStat(const FBaseStat& NewBaseStat)
 	OnHpChanged.ExecuteIfBound(BaseStat.MaxHP, BaseStat.CurrentHP);
 }
 
-float UIVMonsterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVMonsterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
@@ -61,7 +66,9 @@ float UIVMonsterStatComponent::TakeDamage(float Damage, FDamageEvent const& Dama
 		if (LifeEventSubsystem)
 		{
 			LifeEventSubsystem->MonsterDeathEventDelegate.Broadcast(GetOwner());
+			OnMonsterDeathLocalEvent.Broadcast();
 		}
+		return false;
 	}
-	return 0.0f;
+	return true;
 }

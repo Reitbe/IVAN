@@ -17,7 +17,5 @@ bool UIVBTDecorator_CompareRange::CalculateRawConditionValue(UBehaviorTreeCompon
 	float Distance = BlackboardComp->GetValueAsFloat(DistanceToTarget.SelectedKeyName);
 	float Range = BlackboardComp->GetValueAsFloat(DistanceRange.SelectedKeyName);
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("거리 비교 태스크"));
-
 	return Distance < Range;
 }

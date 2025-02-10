@@ -27,6 +27,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+
+// 사망 및 부활
+protected:
+	void SetDead();
+	void SetAlive();
+
 // HUD
 protected:
 	UPROPERTY(EditAnywhere, Category = "HUD")

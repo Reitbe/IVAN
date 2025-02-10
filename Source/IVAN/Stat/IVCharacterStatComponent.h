@@ -77,6 +77,6 @@ public:
 // 데미지 처리
 public:
 	/* 캐릭터의 TakeDamage 함수를 그대로 넘겨받아 데미지 처리*/
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	virtual bool TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 };

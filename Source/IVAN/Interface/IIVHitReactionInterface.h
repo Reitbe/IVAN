@@ -24,4 +24,5 @@ class IVAN_API IIIVHitReactionInterface
 public:
 	virtual void StartHitReaction() = 0;
 	virtual void EndHitReaction() = 0;
+	virtual void EndDeathReaction() = 0;
 };

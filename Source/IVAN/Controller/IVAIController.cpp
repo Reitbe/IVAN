@@ -7,6 +7,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "IVAN/Interface/IIVMonsterComponentProvider.h"
+#include "IVAN/Stat/IVMonsterStatComponent.h"
 
 AIVAIController::AIVAIController()
 {
@@ -35,12 +37,33 @@ void AIVAIController::RunAI()
 
 void AIVAIController::StopAI()
 {
+	// 행동트리 정지용
+	BrainComponent->StopLogic("AI Stop");
+
+	// 조종 해제
+	UnPossess();
+}
+
+void AIVAIController::SetDead()
+{
+	StopAI();
+	
+	// 사망 정보를 블랙보드에 전달
+	Blackboard->SetValueAsEnum(BBKEY_MONSTER_STATE, static_cast<uint8>(EMonsterState::Dead));
+	Blackboard->ClearValue(BBKEY_TARGET_ACTOR);
 }
 
 void AIVAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 	RunAI();
+
+	// 몬스터 사망 이벤트 바인딩
+	IIIVMonsterComponentProvider* MonsterProvider = Cast<IIIVMonsterComponentProvider>(InPawn);
+	if (MonsterProvider)
+	{
+		MonsterProvider->GetMonsterStatComponent()->OnMonsterDeathLocalEvent.AddUObject(this, &AIVAIController::SetDead);
+	}
 }
 
 void AIVAIController::OnPerceptionUpdated(AActor* UpdatedActor, FAIStimulus UpdatedStimulus)
@@ -58,12 +81,15 @@ void AIVAIController::OnPerceptionUpdated(AActor* UpdatedActor, FAIStimulus Upda
 
 void AIVAIController::OnAttackEnd()
 {
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("공격 종료"));
+	//UE_LOG(LogTemp, Warning, TEXT("공격 종료"));
 	Blackboard->SetValueAsEnum(BBKEY_MONSTER_STATE, static_cast<uint8>(EMonsterState::Chase));
 }
 
 void AIVAIController::OnHit(AActor* Attacker)
 {
 	Blackboard->SetValueAsEnum(BBKEY_MONSTER_STATE, static_cast<uint8>(EMonsterState::HitStunned));
+	//UE_LOG(LogTemp, Warning, TEXT("피격 시작"));
 
 	// 공격자를 타깃 액터로 지정
 	if (Attacker->ActorHasTag("Player"))
@@ -74,5 +100,7 @@ void AIVAIController::OnHit(AActor* Attacker)
 
 void AIVAIController::OnHitEnd()
 {
+	//UE_LOG(LogTemp, Warning, TEXT("피격 종료"));
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("피격 종료"));
 	Blackboard->SetValueAsEnum(BBKEY_MONSTER_STATE, static_cast<uint8>(EMonsterState::Chase));
 }

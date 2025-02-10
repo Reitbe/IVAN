@@ -93,7 +93,7 @@ protected:
 	void Look(const FInputActionValue& Value);			// 시선 이동
 	
 	/* 상태 전환 */
-	void RunWalkSwitch(const FInputActionValue& Value); // 걷기 달리기 전환
+	void RunWalkSwitch(); // 걷기 달리기 전환
 
 	/* 공격 */
 	void BasicAttack(const FInputActionValue& Value);	// 기본 공격
@@ -179,5 +179,5 @@ public:
 	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
 	virtual void StartHitReaction() override;
 	virtual void EndHitReaction() override;
-
+	virtual void EndDeathReaction() override;
 };
