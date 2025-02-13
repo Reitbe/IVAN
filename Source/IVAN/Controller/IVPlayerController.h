@@ -33,10 +33,20 @@ protected:
 	void SetDead();
 	void SetAlive();
 
+
 // HUD
+public:
+	/* 보스룸 입장 시 HUD에서 보스 몬스터의 체력을 표시하기 위한 함수 */
+	UFUNCTION(BlueprintCallable)
+	void ShowBossStatWidget(AIVBossEnemy* Boss);
+
+	UFUNCTION(BlueprintCallable)
+	void HideBossStatWidget();
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;
+
 
 // 입력
 public:

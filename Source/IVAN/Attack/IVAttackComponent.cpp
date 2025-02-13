@@ -6,6 +6,7 @@
 #include "IVAN/Item/IVWeapon.h"
 #include "IVAN/Interface/IIVWeaponInterface.h"
 #include "IVAN/Interface/IIVAttackEndInterface.h"
+#include "IVAN/Attack/IVAttackRange.h"
 
 // Sets default values for this component's properties
 UIVAttackComponent::UIVAttackComponent()
@@ -44,6 +45,18 @@ void UIVAttackComponent::SetWeapon(TObjectPtr<AIVWeapon> NewWeapon)
 			WeaponInterface->SetOwnerController(OwnerCharacter->GetController());
 		}
 		MaxComboCount = WeaponInterface->GetMaxComboCount();
+	}
+}
+
+void UIVAttackComponent::ProvideOwnerAttackRanges(const TArray<UIVAttackRange*> AttackRanges)
+{
+	if (WeaponInstance)
+	{
+		IIIVWeaponInterface* WeaponInterface = Cast<IIIVWeaponInterface>(WeaponInstance);
+		if (WeaponInterface)
+		{
+			WeaponInterface->SetOwnerAttackRanges(AttackRanges);
+		}
 	}
 }
 

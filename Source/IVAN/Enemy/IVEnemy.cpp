@@ -4,16 +4,21 @@
 #include "IVEnemy.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/CapsuleComponent.h"
 #include "IVAN/Stat/IVEquipComponent.h"
 #include "IVAN/Stat/IVMonsterStatComponent.h"
 #include "IVAN/Attack/IVHitReactionComponent.h"
 #include "IVAN/Attack/IVAttackComponent.h"
+#include "IVAN/Attack/IVAttackRange.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 #include "IVAN/Item/IVWeapon.h"
 #include "IVAN/UI/IVBaseStatBar.h"
 
 AIVEnemy::AIVEnemy()
 {
+	MonsterName = FName(TEXT("Monster"));
+	MonsterType = EMonsterType::Normal;
+
 	// 스탯 컴포넌트 설정
 	MonsterStatComponent = CreateDefaultSubobject<UIVMonsterStatComponent>(TEXT("MonsterStatComponent"));
 
@@ -48,6 +53,18 @@ void AIVEnemy::Tick(float DeltaTime)
 void AIVEnemy::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	// 보유한 공격 범위 콜라이더 찾아오기
+	GetComponents<UIVAttackRange>(AttackRanges);
+}
+
+FBaseStat AIVEnemy::GetMonsterBaseStat() const
+{
+	if (MonsterStatComponent)
+	{
+		return MonsterStatComponent->GetBaseStat();
+	}
+	return FBaseStat();
 }
 
 void AIVEnemy::BeginPlay()
@@ -62,13 +79,20 @@ void AIVEnemy::BeginPlay()
 		AttackComponent->SetAnimInstance(AnimInstance);
 	}
 
-	// 위젯 바인딩
+	// 일반 몬스터인 경우 체력 위젯 바인딩 -> 보스는 플레이어 HUD에서 처리
 	if (MonsterStatComponent && WidgetComponent)
 	{
 		HealthBar = Cast<UIVBaseStatBar>(WidgetComponent->GetUserWidgetObject());
-		if (HealthBar)
+		if (HealthBar && MonsterType == EMonsterType::Normal)
 		{
 			MonsterStatComponent->OnHpChanged.BindUObject(HealthBar, &UIVBaseStatBar::UpdateStatBar);
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("체력바 바인딩 완료"));
+		}
+		else
+		{
+			HealthBar->SetVisibility(ESlateVisibility::Collapsed);
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("체력바 숨기기 완료"));
+
 		}
 	}
 
@@ -81,28 +105,19 @@ void AIVEnemy::BeginPlay()
 
 void AIVEnemy::SetDead()
 {
-	Super::SetDead();
-
-	// 사망 애니메이션 재생 -> 래그돌로 대체
-	//if (HitReactionComponent)
-	//{
-	//	HitReactionComponent->PlayDeathMontage();
-	//}
-
-	// 래그돌 처리
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	GetMesh()->SetSimulatePhysics(true);
-
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
-	GetMesh()->bBlendPhysics = true;
-
 	// UI 처리
-	if (HealthBar)
+	if (MonsterType == EMonsterType::Normal && HealthBar)
 	{
 		HealthBar->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	// 무기 해제
+	if (EquipComponent)
+	{
+		EquipComponent->UnequipWeapon();
+	}
+
+	Super::SetDead();
 }
 
 void AIVEnemy::SetAlive()
@@ -132,6 +147,7 @@ float AIVEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AContr
 				}
 			}
 		}
+		// 보스몬스터는 피격 반응을 하지 않는다. 
 	}
 	return 0.0f;
 }
@@ -176,7 +192,7 @@ void AIVEnemy::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 		FName SocketName(TEXT("hand_rSocket"));
 		if (!GetMesh()->DoesSocketExist(SocketName))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
+			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
 			return;
 		}
 		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
@@ -186,6 +202,7 @@ void AIVEnemy::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 	if (Item->GetItemType() == EItemType::Weapon && AttackComponent)
 	{
 		AttackComponent->SetWeapon(Cast<AIVWeapon>(Item));
+		AttackComponent->ProvideOwnerAttackRanges(AttackRanges);
 	}
 }
 
@@ -205,15 +222,11 @@ void AIVEnemy::EndHitReaction()
 
 void AIVEnemy::EndDeathReaction()
 {
-	// 래그돌
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	GetMesh()->SetSimulatePhysics(true);
+	// 래그돌 작업은 Super::SetDead()에서 처리
 }
 
 void AIVEnemy::ExecuteBasicAttack()
 {
-
 	// 스탯 컴포넌트로부터 몬스터의 데미지 정보를 가져온다
 	FBaseDamageStat BaseDamageStat;
 	if (MonsterStatComponent)

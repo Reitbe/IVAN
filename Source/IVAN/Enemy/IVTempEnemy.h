@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "IVAN/Interface/IIVLockOnTargetMarker.h"
 #include "IVTempEnemy.generated.h"
 
 class UWidgetComponent;
@@ -15,7 +16,7 @@ class UBoxComponent;
 */
 
 UCLASS()
-class IVAN_API AIVTempEnemy : public AActor
+class IVAN_API AIVTempEnemy : public AActor, public IIIVLockOnTargetMarker
 {
 	GENERATED_BODY()
 

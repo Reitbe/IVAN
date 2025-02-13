@@ -12,7 +12,7 @@ UIVBTDecorator_CompareRange::UIVBTDecorator_CompareRange()
 
 bool UIVBTDecorator_CompareRange::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	// 블랙보드 컴포넌트 가져오기
+	// 블랙보드 정보를 가져와서 값 비교
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 	float Distance = BlackboardComp->GetValueAsFloat(DistanceToTarget.SelectedKeyName);
 	float Range = BlackboardComp->GetValueAsFloat(DistanceRange.SelectedKeyName);

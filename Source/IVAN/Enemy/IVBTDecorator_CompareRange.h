@@ -7,7 +7,7 @@
 #include "IVBTDecorator_CompareRange.generated.h"
 
 /**
- * 
+ * 행동의 발동이 거리 조건에 따라 발동될 때, 거리를 비교하여 발동 여부를 결정하는 데코레이터
  */
 UCLASS()
 class IVAN_API UIVBTDecorator_CompareRange : public UBTDecorator
@@ -25,6 +25,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "DistanceParam")
 	FBlackboardKeySelector DistanceToTarget;
 
+	/* 지정 비교 범위 */
 	UPROPERTY(EditAnywhere, Category = "DistanceParam")
 	FBlackboardKeySelector DistanceRange;
 

@@ -74,12 +74,10 @@ public:
 
 
 // 설정 관련 변수
-protected:
-	/* 피격 리액션 사용 여부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reaction Option")
-	uint8 bIsUsingHitReaction : 1;
+public: 
+	void SetUsingHitReaction(bool bNewUsingHitReaction) { bIsUsingHitReaction = bNewUsingHitReaction; };
 
-	/* 사망 시 래그돌 사용 여부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reaction Option")
-	uint8 bIsUsingRagdoll : 1;
+private:
+	/* 피격 리액션 사용 여부 */
+	uint8 bIsUsingHitReaction : 1;
 };

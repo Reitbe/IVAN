@@ -70,6 +70,8 @@ public:
 public:
 	void SetMonsterState(EMonsterState NewState) { MonsterState = NewState; };
 	EMonsterState GetMonsterState() const { return MonsterState; };
+	float GetMonsterMaxHp() const { return BaseStat.MaxHP; };
+	float GetMonsterCurrentHp() const { return BaseStat.CurrentHP; };
 
 
 // 데미지 처리

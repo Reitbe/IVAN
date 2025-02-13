@@ -9,10 +9,7 @@
 UIVHitReactionComponent::UIVHitReactionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// 변수 초기화
 	bIsUsingHitReaction = true;
-	bIsUsingRagdoll = false;
 }
 
 void UIVHitReactionComponent::BeginPlay()
@@ -98,7 +95,7 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 
 	AnimInstance->Montage_Play(HitReactionMontage); // 몽타주 재생
 
-	// 피격 애니메이션 종료 시 오너의 피격 리액션 종료
+	// 피격 애니메이션 종료 후 피격 상태 해제
 	FOnMontageBlendingOutStarted BlendingOutDelegate;
 	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
 		{
@@ -114,9 +111,10 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 void UIVHitReactionComponent::PlayDeathMontage()
 {
 	if (!AnimInstance || !DeathMontage) return;
+
 	AnimInstance->Montage_Play(DeathMontage); // 사망 몽타주 재생
 
-	// 몽타주 종료 시 레그돌로 전환
+	// 몽타주 종료 후 처리(래그돌 사용 등)
 	FOnMontageBlendingOutStarted BlendingOutDelegate;
 	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
 		{

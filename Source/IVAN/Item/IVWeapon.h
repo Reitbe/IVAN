@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "IVAN/Item/IVItemBase.h"
 #include "IVAN/Interface/IIVWeaponInterface.h"
+#include "IVAN/Attack/IVAttackRange.h"
 #include "IVWeapon.generated.h"
 
 class UCapsuleComponent;
@@ -31,6 +32,9 @@ protected:
 
 
 // 소유자 정보
+public:
+	void DropWeapon();
+
 private:
 	/* 무기 소유자 접근용 */
 	TObjectPtr<AController> OwnerController;
@@ -79,7 +83,11 @@ protected:
 	* 실제 충돌 판정은 콜라이더의 위치와 방향, 크기를 기준으로 Trace를 진행한다.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
-	TObjectPtr<UCapsuleComponent> HitCollider;
+	TArray<UIVAttackRange*> HitColliders;
+
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	//TObjectPtr<UCapsuleComponent> HitCollider;
 
 	/* 무기와 충돌한 액터 목록 */
 	TArray<TObjectPtr<AActor>> HitActors;
@@ -92,6 +100,7 @@ protected:
 public:
 	virtual void SetOwnerController(AController* NewOwnerController) override;
 	virtual void SetOwnerDamageStat(FBaseDamageStat NewDamageStat) override;
+	virtual void SetOwnerAttackRanges(const TArray<UIVAttackRange*>& AttackRanges) override;
 	virtual int32 GetMaxComboCount() const override { return MaxComboCount; };
 	virtual UAnimMontage* GetComboMontage(int32 ComboIndex) const override;
 

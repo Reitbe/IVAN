@@ -10,7 +10,8 @@
 class UBlackboardComponent;
 
 /**
- * 
+ * 앞선 태스크의 상태를 유지하기 위한 태스크.
+ * 태스크 실행 시의 상태가 변경되기 전까지 계속 실행된다.
  */
 UCLASS()
 class IVAN_API UIVBTTask_KeepState : public UBTTaskNode
@@ -25,9 +26,8 @@ protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	
 private:
-	/* 블랙보드 컴포넌트 - 틱용 */
 	TObjectPtr<UBlackboardComponent> Blackboard;
 
-	/* 새로 변경되기 이전의 노드 상태 */
+	/* 변경되기 이전의 노드 상태 */
 	EMonsterState PreviousState;
 };

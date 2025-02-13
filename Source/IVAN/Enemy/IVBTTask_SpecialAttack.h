@@ -7,11 +7,17 @@
 #include "IVBTTask_SpecialAttack.generated.h"
 
 /**
- * 
+ * AI의 특수 공격 행동을 수행하는 테스크
+ * 실제 공격은 AI 캐릭터의 인터페이스를 통해 수행하며, 이곳에서는 블랙보드의 상태만을 변경한다.
  */
 UCLASS()
 class IVAN_API UIVBTTask_SpecialAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
+
+public:
+	UIVBTTask_SpecialAttack();
+
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	
 };

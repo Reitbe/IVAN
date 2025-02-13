@@ -9,9 +9,11 @@
 #include "IVAN/Interface/IIVWeaponProvider.h"
 #include "IVAN/Interface/IIVEquipInterface.h"
 #include "IVAN/Interface/IIVHitReactionInterface.h"
+#include "IVAN/Interface/IIVLockOnTargetMarker.h"
 #include "InputActionValue.h"
 #include "IVPlayerCharacter.generated.h"
 
+class UIVAttackRange;
 class UInputMappingContext;
 class UInputAction;
 class UInputComponent;
@@ -25,6 +27,7 @@ class UIVAttackComponent;
 
 /**
  * 인게임 플레이어 캐릭터 클래스
+ * 여러 컴포넌트를 보유하고 있으며, 주로 플레이어의 입력에 따른 동작을 수행한다.
  */
 
 UCLASS()
@@ -45,6 +48,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 private:
 	/* 캐릭터 플레이어 컨트롤러*/
@@ -62,6 +66,16 @@ public:
 	/* 공격 컴포넌트에 무기 인스턴스 전달 */
 	void SetWeaponOnWeaponComponent(TObjectPtr<AIVWeapon> Weapon);
 
+	/* 캐릭터에 부착된 공격 컴포넌트 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	TArray<UIVAttackRange*> AttackRanges;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	//TObjectPtr<UIVAttackRange> RightCalfAttackRange;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	//TObjectPtr<UIVAttackRange> LeftCalfAttackRange;
+
 
 // 데미지 처리
 public:
@@ -78,8 +92,28 @@ protected:
 	virtual void SetDead() override;
 	virtual void SetAlive() override;
 
+	/* 새로운 캐릭터 생성(부활) 및 빙의 완료시 실행*/
+	void RespawnComplete();
+
 	/* 피격 정보 수신 */
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+
+// 락온(타겟팅)
+protected:
+	void LockOn();	// 락온
+	void LockOff(); // 락오프
+	void CheckLockOnDistance(); // 락온 거리 체크
+	void MonsterDeath(AActor* DeadMonster); // 타겟이 죽었을 때 처리
+
+	/* 현재 타겟팅중인 대상 */
+	TObjectPtr<AActor> LockOnActor; 
+
+	/* 타겟팅이 가능한 & 타겟팅이 유지되는 거리 */
+	float LockOnDistance; 
+
+	/* 일정 시간마다 대상이 락온 범위 내에 있는지 확인하기 위한 타이머 */
+	FTimerHandle LockOnCheckTimer; 
 
 
 // 입력
@@ -98,6 +132,9 @@ protected:
 	/* 공격 */
 	void BasicAttack(const FInputActionValue& Value);	// 기본 공격
 	uint8 bAttackEndChecked : 1;						// 공격 종료 체크는 1~2번 처리된다. 회차 표시용.
+
+	/* 락온 */
+	void LockOnSwitch(); // 락온 전환
 	
 private:
 	/* 입력 관련 에셋들 로드 및 초기화 헬퍼 */

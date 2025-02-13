@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IVAN/Character/IVCharacterBase.h"
+#include "IVAN/Enemy/IVBlackBoardKeys.h"
 #include "IVAN/Interface/IIVAttackEndInterface.h"
 #include "IVAN/Interface/IIVWeaponProvider.h"
 #include "IVAN/Interface/IIVEquipInterface.h"
@@ -11,8 +12,10 @@
 #include "IVAN/Interface/IIVAICharacterBasicCombat.h"
 #include "IVAN/Interface/IIVAIControllerBasicCombat.h"
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
+#include "IVAN/Interface/IIVLockOnTargetMarker.h"
 #include "IVEnemy.generated.h"
 
+class UIVAttackRange;
 class UIVHitReactionComponent;
 class UIVAttackComponent;
 class UIVMonsterStatComponent;
@@ -31,6 +34,7 @@ class IVAN_API AIVEnemy
 	, public IIIVHitReactionInterface
 	, public IIIVAICharacterBasicCombat
 	, public IIIVMonsterComponentProvider
+	, public IIIVLockOnTargetMarker
 {
 	GENERATED_BODY()
 
@@ -43,12 +47,30 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
+	FName MonsterName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
+	EMonsterType MonsterType;
+
 
 // 스탯 시스템
+public:
+	/* 정말 기본적인 스탯 제공 함수 */
+	FName GetMonsterName() const { return MonsterName; }
+	FBaseStat GetMonsterBaseStat() const;
+
 protected:
 	/* 몬스터 스탯 컴포넌트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
 	TObjectPtr<UIVMonsterStatComponent> MonsterStatComponent;
+
+
+// 장비 관련
+	/* 몬스터에 부착된 공격 컴포넌트 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	TArray<UIVAttackRange*> AttackRanges;
 
 
 // 데미지 처리
@@ -84,6 +106,7 @@ public:
 
 	/* 체력 바 위젯 */
 	TObjectPtr<UIVBaseStatBar> HealthBar;
+
 
 // 인터페이스 구현
 public:

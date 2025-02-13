@@ -9,10 +9,8 @@
 class UIVEquipComponent;
 class USkeletalMeshComponent;
 
-
 /*
-* 다양한 캐릭터들의 기본이 되는 클래스.
-* 모듈형 의상 시스템은 추후 분리하여 별도의 클래스로 구현할 예정.
+* 플레이어, 몬스터, NPC 등 캐릭터의 기본 클래스
 */
 
 UCLASS()
@@ -20,6 +18,7 @@ class IVAN_API AIVCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
+// 기본
 public:
 	AIVCharacterBase();
 
@@ -37,7 +36,7 @@ protected:
 	virtual void SetAlive();
 
 
-// 장비 관련
+// 장비 관련(모듈형 의상)
 public:
 	/* 캐릭터 장비 관리 컴포넌트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")

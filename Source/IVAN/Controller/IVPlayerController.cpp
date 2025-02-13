@@ -61,6 +61,7 @@ void AIVPlayerController::BeginPlay()
 
 void AIVPlayerController::SetDead()
 {
+	// 입력 관련 비활성화
 	SetInputMode(FInputModeUIOnly());
 	bShowMouseCursor = true;
 	SetIgnoreMoveInput(true);
@@ -69,10 +70,27 @@ void AIVPlayerController::SetDead()
 
 void AIVPlayerController::SetAlive()
 {
+	// 입력 관련 활성화
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
 	SetIgnoreMoveInput(false);
 	GetPawn()->EnableInput(this);
+}
+
+void AIVPlayerController::ShowBossStatWidget(AIVBossEnemy* Boss)
+{
+	if (SimpleStatHUD)
+	{
+		SimpleStatHUD->ShowBossStatWidget(Boss);
+	}
+}
+
+void AIVPlayerController::HideBossStatWidget()
+{
+	if (SimpleStatHUD)
+	{
+		SimpleStatHUD->HideBossStatWidget();
+	}
 }
 
 void AIVPlayerController::SetupInputComponent()

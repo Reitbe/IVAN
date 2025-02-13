@@ -23,6 +23,7 @@ class IVAN_API AIVAIController : public AAIController, public IIIVAIControllerBa
 {
 	GENERATED_BODY()
 
+
 // 기본
 public:
 	AIVAIController();
@@ -54,16 +55,16 @@ protected:
 
 // 행동 트리 & 블랙보드
 protected:
-	/* 에디터에서 지정 */
+	/* 행동 트리 - 에디터에서 지정 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
-	/* 에디터에서 지정 */
+	/* 블랙보드 - 에디터에서 지정 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	TObjectPtr<UBlackboardData> BlackboardAsset;
 
 
-// 인터페이스 구현
+// IIIVAIControllerBasicCombat 인터페이스 구현
 public:
 	virtual void OnAttackEnd() override;
 	virtual void OnHit(AActor* Attacker) override;

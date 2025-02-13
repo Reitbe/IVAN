@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "IVAN/IVGenericStructs.h"
+#include "IVAN/Attack/IVAttackRange.h"
 #include "IIVWeaponInterface.generated.h"
 
 // This class does not need to be modified.
@@ -28,6 +29,7 @@ public:
 	/* 무기 소유자 전달용 */
 	virtual void SetOwnerController(AController* NewOwnerController) = 0;
 	virtual void SetOwnerDamageStat(FBaseDamageStat NewDamageStat) = 0;
+	virtual void SetOwnerAttackRanges(const TArray<UIVAttackRange*>& AttackRanges) = 0;
 
 	virtual int32 GetMaxComboCount() const = 0;
 

@@ -22,7 +22,12 @@ class IVAN_API IIIVHitReactionInterface
 	GENERATED_BODY()
 
 public:
+	/* 피격 리액션 시작 - 캐릭터 상태 전환 등에 활용*/
 	virtual void StartHitReaction() = 0;
+
+	/* 피격 리액션 종료 - 캐릭터 상태 전환 등에 활용*/ 
 	virtual void EndHitReaction() = 0;
+
+	/* 사망 리액션 종료 - 애니메이션 종료 이후 래그돌 전환 등에 활용*/
 	virtual void EndDeathReaction() = 0;
 };

@@ -7,7 +7,10 @@
 #include "IVSimpleStatHUD.generated.h"
 
 class UIVSimpleStatWidget;
+class UIVSimpleBossStatWidget;
 class UIVCharacterStatComponent;
+class UIVMonsterStatComponent;
+class AIVBossEnemy;
 
 /**
  * 플레이어 기본 스텟의 HUD 표시 관리
@@ -22,22 +25,38 @@ public:
 	AIVSimpleStatHUD();
 	virtual void BeginPlay() override;
 
-// 사망 처리
+// 플레이어 사망 및 부활 처리
 protected:
 	void OnPlayerDeath();
 	void OnPlayerAlive();
+	void BindPlayerStatWidget();
+
+// 보스 스탯 표시
+public:
+	void OnBossDeath(AActor* DeadMonster);
+	void ShowBossStatWidget(AIVBossEnemy* Boss);
+	void HideBossStatWidget();
 
 // UI 관리
 protected:
 	/* 스텟 위젯 갱신을 위한 정보 습득용 컴포넌트 */
 	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
+	TObjectPtr<UIVMonsterStatComponent> BossStatComponent;
+	TObjectPtr<AActor> BossEnemy;
+
 
 // UI 
 	UPROPERTY(EditAnyWhere, Category = "UI")
-	TSubclassOf<UIVSimpleStatWidget> SimpleStatWidgetClass;
-	TObjectPtr< UIVSimpleStatWidget> SimpleStatWidget;
+	TSubclassOf<UIVSimpleStatWidget> PlayerStatWidgetClass;
+	TObjectPtr< UIVSimpleStatWidget> PlayerStatWidget;
 	
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> DeathWidgetClass;
 	TObjectPtr<UUserWidget> DeathWidget;
+
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UIVSimpleBossStatWidget> BossStatWidgetClass;
+	TObjectPtr< UIVSimpleBossStatWidget> BossStatWidget;
+
+
 };

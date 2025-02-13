@@ -7,7 +7,7 @@
 #include "IVBTService_CalcDistance.generated.h"
 
 /**
- * 
+ * 지정 틱마다 타깃과의 거리를 계산하여 블랙보드에 저장하는 서비스
  */
 UCLASS()
 class IVAN_API UIVBTService_CalcDistance : public UBTService

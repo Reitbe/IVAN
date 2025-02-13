@@ -36,8 +36,8 @@ enum class EJumpState : uint8
 UENUM(BlueprintType)
 enum class ETargetingState : uint8
 {
-    OnTargeting     UMETA(DisplayName = "On Targeting"),
-    NonTargeting    UMETA(DisplayName = "Non-Targeting")
+    NonTargeting    UMETA(DisplayName = "Non-Targeting"),
+    OnTargeting     UMETA(DisplayName = "On Targeting")
 };
 
 // 특수 움직임 상태

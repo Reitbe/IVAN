@@ -6,18 +6,21 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "CharacterTrajectoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "Components/CapsuleComponent.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Stat/IVEquipComponent.h"
 #include "IVAN/Attack/IVHitReactionComponent.h"
 #include "IVAN/Attack/IVAttackComponent.h"
+#include "IVAN/Attack/IVAttackRange.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/GameSystem/IVANGameMode.h"
 #include "IVAN/Item/IVWeapon.h"
-#include "Components/CapsuleComponent.h"
 
 AIVPlayerCharacter::AIVPlayerCharacter()
 {
@@ -50,6 +53,12 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
+
+	//// 임시 공격 범위 생성
+	//RightCalfAttackRange = CreateDefaultSubobject<UIVAttackRange>(TEXT("RightCalfAttackRange"));
+	//LeftCalfAttackRange = CreateDefaultSubobject<UIVAttackRange>(TEXT("LeftCalftAttackRange"));
+
+	LockOnDistance = 1000.0f;
 }
 
 // 입력 관련 에셋들은 생성자에서 초기화 및 로드
@@ -111,12 +120,12 @@ void AIVPlayerCharacter::InputConstructHelper()
 		LookAction = LookActionFinder.Object;
 	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> TargetActionFinder
-	//(TEXT(""));
-	//if (TargetActionFinder.Succeeded())
-	//{
-	//	TargetAction = TargetActionFinder.Object;
-	//}
+	static ConstructorHelpers::FObjectFinder<UInputAction> TargetActionFinder
+	(TEXT("/Game/Input/Actions/IA_LockOn.IA_LockOn"));
+	if (TargetActionFinder.Succeeded())
+	{
+		TargetAction = TargetActionFinder.Object;
+	}
 
 	//static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionFinder
 	//(TEXT(""));
@@ -201,7 +210,7 @@ void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 		FName SocketName(TEXT("hand_rSocket"));
 		if (!GetMesh()->DoesSocketExist(SocketName))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
+			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
 			return;
 		}
 		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
@@ -211,15 +220,16 @@ void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 	if (Item->GetItemType() == EItemType::Weapon && AttackComponent)
 	{
 		AttackComponent->SetWeapon(Cast<AIVWeapon>(Item));
+		AttackComponent->ProvideOwnerAttackRanges(AttackRanges);
 	}
 }
 
 void AIVPlayerCharacter::StartHitReaction()
 {
+	// 어떠한 상태더라도 피격 상태로 변경
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	if (CharacterStatComponent)
 	{
-		// 어떠한 상태더라도 피격 상태로 변경
 		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::HitStunned);
 	}
 }
@@ -235,10 +245,10 @@ void AIVPlayerCharacter::EndHitReaction()
 
 void AIVPlayerCharacter::EndDeathReaction()
 {
-	// 애니메이션 종료 후 래그돌 처리
-	//GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	//GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	//GetMesh()->SetSimulatePhysics(true);
+	/*
+	* 캐릭터 사망 애니메이션 재생 이후 래그돌로 전환하고자 해당 함수를 선언했다.
+	* 현재는 사망 애니메이션을 재생하지 않고 오로지 래그돌만을 사용하고있다.
+	*/
 }
 
 void AIVPlayerCharacter::BeginPlay()
@@ -265,6 +275,7 @@ void AIVPlayerCharacter::BeginPlay()
 		{
 			DeathEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetDead);
 			DeathEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetAlive);
+			DeathEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::MonsterDeath);
 		}
 	}
 
@@ -281,6 +292,32 @@ void AIVPlayerCharacter::BeginPlay()
 
 	// 캐릭터 이동 속도 초기화
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+
+	// 캐릭터 준비 완료
+	RespawnComplete();
+}
+
+void AIVPlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	// 보유한 공격 범위 콜라이더 찾아오기
+	GetComponents<UIVAttackRange>(AttackRanges);
+
+	//AttackRanges.Add(RightCalfAttackRange);
+	//AttackRanges.Add(LeftCalfAttackRange);
+
+	//FName ClafRSocket(TEXT("calf_r_socket"));
+	//if (GetMesh()->DoesSocketExist(ClafRSocket))
+	//{
+	//	RightCalfAttackRange->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ClafRSocket);
+	//}
+
+	//FName ClafLSocket(TEXT("calf_l_socket"));
+	//if (GetMesh()->DoesSocketExist(ClafLSocket))
+	//{
+	//	LeftCalfAttackRange->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ClafLSocket);
+	//}
 }
 
 TObjectPtr<AIVWeapon> AIVPlayerCharacter::GetWeapon() const
@@ -304,6 +341,19 @@ void AIVPlayerCharacter::SetWeaponOnWeaponComponent(TObjectPtr<AIVWeapon> Weapon
 
 void AIVPlayerCharacter::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
+	if (CharacterStatComponent)
+	{
+		// 락온 중이라면 락온 대상을 따라 시점을 조정한다
+		if (CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting && LockOnActor)
+		{
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnActor->GetActorLocation());
+			PlayerController->SetControlRotation(LookAtRotation);
+			//FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 10.0f);
+			//PlayerController->SetControlRotation(NewRotation);
+		}
+	}
 }
 
 void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -320,6 +370,7 @@ void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 전환
 		Input->BindAction(RunWalkSwitchAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::RunWalkSwitch);
+		Input->BindAction(TargetAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::LockOnSwitch);
 
 		// 공격
 		Input->BindAction(BasicAttackAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::BasicAttack);
@@ -342,8 +393,37 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 		FVector FowardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		FVector SideDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+		// 이동 적용
 		AddMovementInput(FowardDirection, FowardValue);
 		AddMovementInput(SideDirection, SideValue);
+
+		// 타겟팅 시 회전 방향 설정
+		if (CharacterStatComponent && CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting)
+		{
+			GetCharacterMovement()->bOrientRotationToMovement = false; // 자동 회전 방지
+
+			// 현재 이동중인 방향으로 캐릭터 회전
+			FVector MoveDirection = GetVelocity();
+			MoveDirection.Z = 0.0f;
+
+			if (!MoveDirection.IsNearlyZero())
+			{
+				//FRotator TargetRotation = MoveDirection.Rotation();
+				//SetActorRotation(TargetRotation);
+
+				// 해당 방향으로 보간하여 부드럽게 회전
+				FRotator TargetRotation = UKismetMathLibrary::MakeRotFromX(MoveDirection);
+				FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 10.0f);
+				SetActorRotation(NewRotation);
+
+			}
+		}
+		// 논타겟팅시 움직이는 방향 따라 회전
+		else
+		{
+			GetCharacterMovement()->bOrientRotationToMovement = true; // 자동 회전 방지
+		}
+
 	}
 }
 
@@ -418,6 +498,108 @@ void AIVPlayerCharacter::BasicAttack(const FInputActionValue& Value)
 	}
 }
 
+void AIVPlayerCharacter::LockOnSwitch()
+{
+	if (CharacterStatComponent)
+	{
+		if (CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::NonTargeting) // 락오프 -> 락온
+		{
+			CharacterStatComponent->SetCharacterTargetingState(ETargetingState::OnTargeting);
+			LockOn();
+		}
+		else // 락온 -> 락오프																
+		{
+			CharacterStatComponent->SetCharacterTargetingState(ETargetingState::NonTargeting);
+			LockOff();
+		}
+	}
+}
+
+void AIVPlayerCharacter::LockOn()
+{
+	// 락온 대상 탐색을 위한 콜리전 설정
+	TArray<FHitResult> HitResults;
+	FVector Start = GetActorLocation();
+	FVector End = Start; // 원점
+	FQuat Rotation = FQuat::Identity;
+	FCollisionShape CollisionShape = FCollisionShape::MakeSphere(LockOnDistance);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	if (GetWorld()->SweepMultiByObjectType(
+		HitResults,
+		Start,
+		End,
+		Rotation,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+		CollisionShape,
+		QueryParams))
+	{
+		AActor* ClosestActor = nullptr;
+		float ClosestDistance = LockOnDistance;
+
+		// 락온 대상 중 가장 가까운 액터 선택
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor && HitActor->Implements<UIIVLockOnTargetMarker>()) // 락온 대상 조건
+			{
+				float Distance = FVector::Distance(Start, HitActor->GetActorLocation());
+				if (Distance < ClosestDistance)
+				{
+					ClosestDistance = Distance;
+					ClosestActor = HitActor;
+				}
+			}
+		}
+
+		// 실질 락온 작업
+		if (ClosestActor)
+		{
+			LockOnActor = ClosestActor;
+			GetController()->SetIgnoreLookInput(true); // 락온 중 시점 입력 무시
+			GetWorldTimerManager().SetTimer(LockOnCheckTimer, this, &AIVPlayerCharacter::CheckLockOnDistance, 0.1f, true);
+
+			//bUseControllerRotationYaw = true;
+			//GetCharacterMovementComponent()->bOrientRotationToMovement = false;
+		}
+	}
+
+}
+
+void AIVPlayerCharacter::LockOff()
+{
+	LockOnActor = nullptr;
+	GetController()->SetIgnoreLookInput(false); // 락온 해제 시 시점 입력 허용
+	GetWorldTimerManager().ClearTimer(LockOnCheckTimer);
+
+	//bUseControllerRotationYaw = false;
+	//GetCharacterMovementComponent()->bOrientRotationToMovement = true;
+}
+
+void AIVPlayerCharacter::CheckLockOnDistance()
+{
+	if (LockOnActor)
+	{
+		float Distance = FVector::Distance(GetActorLocation(), LockOnActor->GetActorLocation());
+		if (Distance > LockOnDistance)
+		{
+			LockOnSwitch();
+		}
+	}
+}
+
+void AIVPlayerCharacter::MonsterDeath(AActor* DeadMonster)
+{
+	if (CharacterStatComponent && CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting)
+	{
+		if (DeadMonster == LockOnActor)
+		{
+			LockOnSwitch();
+		}
+	}
+}
+
 void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 {
 	if (CharacterStatComponent)
@@ -449,82 +631,72 @@ void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 
 void AIVPlayerCharacter::SetDead()
 {
-	Super::SetDead();
-
 	// 모든 몽타주 중지
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Stop(0.0f);
 	}
 
-	// 달리기 상태 초기화
-	if (CharacterStatComponent->GetCharacterGaitState() == EGaitState::Run)
+	// 무기 해제
+	if (EquipComponent)
 	{
-		RunWalkSwitch();
+		EquipComponent->UnequipWeapon();
 	}
 
-	// 물리 시뮬레이션 활성화
-	GetMesh()->SetSimulatePhysics(true);
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
-	GetMesh()->bBlendPhysics = true;
-
-	// 콜리전 비활성화
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-
-	// 무브먼트 중지
-	GetCharacterMovement()->SetMovementMode(MOVE_None);
+	// 래그돌 활성화
+	Super::SetDead();
 }
 
 void AIVPlayerCharacter::SetAlive()
 {
 	Super::SetAlive();
 
-	GetMesh()->SetCollisionProfileName(TEXT("Player"));
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetAllBodiesSimulatePhysics(false);
-	GetMesh()->SetAllBodiesPhysicsBlendWeight(0.0f);
-	GetMesh()->bBlendPhysics = false;
-
-	// 루트와 메시 정렬
-	GetMesh()->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
-	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
-	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
-	// 무브먼트 재개
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
-	// 입력 활성화도 혹시나 다시 적용(플컨에서 하긴 한다)
-	if (PlayerController)
+	// 부활 이벤트 시 게임모드에게 플레이어 재생성을 요청
+	AIVANGameMode* GameMode = Cast<AIVANGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode)
 	{
-		EnableInput(PlayerController);
+		GameMode->RespawnPlayer(this);
 	}
+}
 
-	// 캡슐도 혹시나 다시 적용
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	SetActorEnableCollision(true);
+void AIVPlayerCharacter::RespawnComplete()
+{
+	// 빙의가 될 때 까지 함수 재호출
+	if (GetController() == nullptr)
+	{
+		FTimerHandle RespawnTimer;
+		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
+			{
+				RespawnComplete();
+			}, 0.1f, false);
+	}
+	// 빙의 및 캐릭터 재생성이 완료되었음을 전달
+	else
+	{
+		UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+		if (GameInstance)
+		{
+			UIVDeathEventSubsystem* DeathEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
+			if (DeathEventSubsystem)
+			{
+				DeathEventSubsystem->PlayerRespawnCompleteDelegate.Broadcast();
+			}
+		}
+	}
+	return;
 }
 
 float AIVPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-	// 데미지 처리 및 피격 리액션 진행
+	// 데미지 처리 -> 데미지를 받고 살아남은 경우에만 피격 리액션 진행
 	if (CharacterStatComponent->TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser))
 	{
-		// 그저 데미지만 입은 경우에는 피격 리액션만 진행
 		HitReactionComponent->ComputeHitAngle(Damage, DamageEvent, EventInstigator, DamageCauser);
 		StartHitReaction();
 	}
-	else
-	{
-		// 사망
-	}
+	// 그렇지 않은 경우는 스탯 컴포넌트에서 사망 처리가 진행된다.
 	return 0.0f;
 }
 
