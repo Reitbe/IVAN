@@ -14,7 +14,7 @@ class UIIVAIControllerSpecialCombat : public UInterface
 };
 
 /**
- * 
+ * 보스 컨트롤러에	 부착되어 특수 행동 흐름을 전달하는 인터페이스
  */
 class IVAN_API IIIVAIControllerSpecialCombat
 {

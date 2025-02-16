@@ -10,30 +10,29 @@
 UIVBTDecorator_SetRandomIndex::UIVBTDecorator_SetRandomIndex()
 {
 	NodeName = TEXT("Set Random Index");
-	RandomIndex = -1;
-}
-
-void UIVBTDecorator_SetRandomIndex::OnNodeActivation(FBehaviorTreeSearchData& SearchData)
-{
-	UBTCompositeNode* IVParentNode = GetParentNode();
-	if (!IVParentNode) return;
-
-	int32 NumChildren = IVParentNode->GetChildrenNum();
-	if (NumChildren > 0)
-	{
-		RandomIndex = UKismetMathLibrary::RandomIntegerInRange(0, NumChildren - 1);
-		UBlackboardComponent* Blackboard = SearchData.OwnerComp.GetBlackboardComponent();
-		if (Blackboard)
-		{
-			Blackboard->SetValueAsInt(BBKEY_RANDOM_INDEX, RandomIndex);
-		}
-
-		UE_LOG(LogTemp, Warning, TEXT("NumChildren : %d, Random Index: %d"), NumChildren, RandomIndex);
-	}
 }
 
 bool UIVBTDecorator_SetRandomIndex::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	return false;
+	// 테스크가 아닌 데코레이터기에 부모 노드를 먼저 가져온다
+	UBTCompositeNode* IVParentNode = GetParentNode();
+	if (!IVParentNode)
+	{
+		return false;
+	}
+
+	// 자식 노드의 수를 확인 후 랜덤 인덱스를 블랙보드에 저장
+	int32 NumChildren = IVParentNode->GetChildrenNum();
+	if (NumChildren > 0)
+	{
+		int32 RandomIndex = UKismetMathLibrary::RandomIntegerInRange(0, NumChildren - 1);
+		UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+		if (Blackboard)
+		{
+			Blackboard->SetValueAsInt(BBKEY_RANDOM_INDEX, RandomIndex);
+		}
+	}
+
+	return true;
 }
 

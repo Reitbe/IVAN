@@ -16,11 +16,7 @@ AIVWeapon::AIVWeapon()
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetRootComponent(WeaponMesh);
 
-	// 충돌 탐지용 콜라이더 생성
-	//HitCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollider"));
-	//HitCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//HitCollider->SetupAttachment(RootComponent);
-
+	// 데미지 스탯 초기화
 	TotalDamage = 0.0f;
 	MaxComboCount = 0;
 }
@@ -32,7 +28,7 @@ void AIVWeapon::PostInitializeComponents()
 	// 콤보 몽타주 수로 최대 콤보 수 결정
 	MaxComboCount = ComboMontages.Num();
 
-	// 가지고 있는 콜라이더들 싸그리 긁어오기
+	// 무기에 부착된 공격 범위 콜라이더들을 찾아 저장
 	GetComponents<UIVAttackRange>(HitColliders);
 }
 
@@ -43,7 +39,7 @@ void AIVWeapon::BeginPlay()
 
 void AIVWeapon::DropWeapon()
 {
-	// 무기 물리	시뮬레이션 활성화
+	// 소유자와 독립적으로 월드에 존재하기 위하여 물리 시뮬레이션 활성화
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	WeaponMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	WeaponMesh->SetSimulatePhysics(true);

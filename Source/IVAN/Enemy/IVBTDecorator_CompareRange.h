@@ -7,7 +7,8 @@
 #include "IVBTDecorator_CompareRange.generated.h"
 
 /**
- * 행동의 발동이 거리 조건에 따라 발동될 때, 거리를 비교하여 발동 여부를 결정하는 데코레이터
+ * 두 거리를 입력받아 비교 결과를 출력하는 데코레이터
+ * 주로 공격 범위와 타깃 사이의 거리를 비교할 때 사용한다.
  */
 UCLASS()
 class IVAN_API UIVBTDecorator_CompareRange : public UBTDecorator

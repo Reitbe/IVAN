@@ -15,7 +15,8 @@
 #define BBKEY_RANDOM_INDEX TEXT("RandomIndex")
 
 /**
- * 블랙보드와 연결된 키들을 정의하는 클래스
+ * 블랙보드와 연결된 키들을 정의하는 클래스.
+ * 관련된 Enum또한 정의한다.
  */
 
 

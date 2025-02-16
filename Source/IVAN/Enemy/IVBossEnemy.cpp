@@ -26,6 +26,7 @@ void AIVBossEnemy::PostInitializeComponents()
 
 void AIVBossEnemy::SpecialMove(AActor* TargetActor) 
 {
+	// 컨트롤러에게 동작이 종료되었음을 알린다.
 	IIIVAIControllerSpecialCombat* AIController = Cast<IIIVAIControllerSpecialCombat>(GetController());
 	if (AIController)
 	{
@@ -35,9 +36,20 @@ void AIVBossEnemy::SpecialMove(AActor* TargetActor)
 
 void AIVBossEnemy::SpecialAttack(AActor* TargetActor)
 {
+	// 컨트롤러에게 동작이 종료되었음을 알린다.
 	IIIVAIControllerSpecialCombat* AIController = Cast<IIIVAIControllerSpecialCombat>(GetController());
 	if (AIController)
 	{
 		AIController->SpecialAttackEnd();
 	}
+}
+
+void AIVBossEnemy::OnNotifySpecialMoveHit()
+{
+	// 구체적인 내용은 세부 보스 클래스에서 구현
+}
+
+void AIVBossEnemy::OnNotifySpecialAttackHit()
+{
+	// 구체적인 내용은 세부 보스 클래스에서 구현
 }

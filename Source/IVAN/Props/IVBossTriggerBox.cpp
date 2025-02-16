@@ -20,13 +20,13 @@ void AIVBossTriggerBox::BeginPlay()
 
 void AIVBossTriggerBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Overlap Begin"));
-
+	// 진입한 액터가 플레이어인 경우 제어 시작
 	if (OtherActor->ActorHasTag("Player"))
 	{
 		PlayerCharacter = Cast<AIVPlayerCharacter>(OtherActor);
 	}
 
+	// 플레이어 컨트롤러의 HUD위젯에 보스 정보를 표시
 	if (PlayerCharacter) 
 	{
 		AIVPlayerController* PlayerController = Cast<AIVPlayerController>(PlayerCharacter->GetController());
@@ -40,8 +40,7 @@ void AIVBossTriggerBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 void AIVBossTriggerBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Overlap End"));
-
+	// 플레이어가 범위를 벗어난 경우 HUD위젯 숨김
 	if (OtherActor->ActorHasTag("Player"))
 	{
 		PlayerCharacter = Cast<AIVPlayerCharacter>(OtherActor);

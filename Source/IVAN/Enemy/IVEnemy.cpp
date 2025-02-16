@@ -86,13 +86,10 @@ void AIVEnemy::BeginPlay()
 		if (HealthBar && MonsterType == EMonsterType::Normal)
 		{
 			MonsterStatComponent->OnHpChanged.BindUObject(HealthBar, &UIVBaseStatBar::UpdateStatBar);
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("체력바 바인딩 완료"));
 		}
 		else
 		{
 			HealthBar->SetVisibility(ESlateVisibility::Collapsed);
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("체력바 숨기기 완료"));
-
 		}
 	}
 
@@ -147,7 +144,7 @@ float AIVEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AContr
 				}
 			}
 		}
-		// 보스몬스터는 피격 반응을 하지 않는다. 
+		// 지금의 보스몬스터는 피격 반응을 하지 않는다. 
 	}
 	return 0.0f;
 }
@@ -192,7 +189,7 @@ void AIVEnemy::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 		FName SocketName(TEXT("hand_rSocket"));
 		if (!GetMesh()->DoesSocketExist(SocketName))
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
 			return;
 		}
 		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);

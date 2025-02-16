@@ -14,7 +14,7 @@ DECLARE_MULTICAST_DELEGATE(FMonsterReviveLocalDelegate);
 class UCharacterMovementComponent;
 
 /**
- * 
+ * 몬스터의 스탯 정보를 관리하는 컴포넌트
  */
 UCLASS()
 class IVAN_API UIVMonsterStatComponent : public UIVBaseStatComponent

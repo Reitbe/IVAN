@@ -85,10 +85,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
 	TArray<UIVAttackRange*> HitColliders;
 
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
-	//TObjectPtr<UCapsuleComponent> HitCollider;
-
 	/* 무기와 충돌한 액터 목록 */
 	TArray<TObjectPtr<AActor>> HitActors;
 

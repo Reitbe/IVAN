@@ -16,7 +16,7 @@ class UIIVMonsterComponentProvider : public UInterface
 };
 
 /**
- * 
+ * 몬스터의 스탯 컴포넌트에 접근하기 위한 인터페이스
  */
 class IVAN_API IIIVMonsterComponentProvider
 {

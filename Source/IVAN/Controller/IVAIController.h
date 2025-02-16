@@ -16,7 +16,8 @@ class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
 
 /**
- * AI의 움직임을 제어하는 클래스
+ * 일반 몬스터 AI의 움직임을 제어하는 기본 클래스. 현재는 스켈레톤만 사용하고 있다.
+ * 보스몬스터는 별도의 클래스로 분리하여 사용한다.
  */
 UCLASS()
 class IVAN_API AIVAIController : public AAIController, public IIIVAIControllerBasicCombat

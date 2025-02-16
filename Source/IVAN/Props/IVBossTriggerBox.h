@@ -10,7 +10,8 @@ class AIVPlayerCharacter;
 class AIVBossEnemy;
 
 /**
- * 트리거 범위에 들어갔을 때, 보스몬스터의 HUD 표시 및 숨김을 담당하는 클래스
+ * 보스룸 관리용 박스. 	
+ * 보스 몬스터 관련 HUD 관리, 진입 이벤트 등을 담당한다.
  */
 UCLASS()
 class IVAN_API AIVBossTriggerBox : public ATriggerBox

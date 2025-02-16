@@ -8,7 +8,8 @@
 #include "IVBossEnemy.generated.h"
 
 /**
- * 
+ * 보스몬스터를 위한 베이스 클래스. 각 보스는 이를 상속받은 개별 클래스를 만들어 사용한다.
+ * 사용 시 다중상속 문제를 조심할 것.
  */
 UCLASS()
 class IVAN_API AIVBossEnemy : public AIVEnemy, public IIIVAICharacterSpecialCombat
@@ -29,5 +30,8 @@ public:
 	/* IIIVAICharacterSpecialCombat 인터페이스 구현*/
 	virtual void SpecialMove(AActor* TargetActor) override;
 	virtual void SpecialAttack(AActor* TargetActor) override;
+	virtual void OnNotifySpecialMoveHit() override;
+	virtual void OnNotifySpecialAttackHit() override;
+
 	
 };

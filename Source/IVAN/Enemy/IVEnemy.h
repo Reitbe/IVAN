@@ -23,7 +23,7 @@ class UWidgetComponent;
 class UIVBaseStatBar;
 
 /**
- * AI 적 캐릭터 클래스
+ * 보스몬스터, 일반 몬스터 등의 기본 클래스.
  */
 UCLASS()
 class IVAN_API AIVEnemy 
@@ -51,6 +51,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
 	FName MonsterName;
 
+	/* 보스 몬스터와 일반 몬스터를 구분하기 위한 타입*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
 	EMonsterType MonsterType;
 

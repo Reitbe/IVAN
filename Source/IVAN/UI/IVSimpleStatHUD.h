@@ -13,7 +13,8 @@ class UIVMonsterStatComponent;
 class AIVBossEnemy;
 
 /**
- * 플레이어 기본 스텟의 HUD 표시 관리
+ * 플레이어에게 필요한 HUD 정보 관리
+ * 사망, 플레이어 스탯, 보스몬스터 스탯과 관련된 UI를 관리한다.
  */
 
 UCLASS()

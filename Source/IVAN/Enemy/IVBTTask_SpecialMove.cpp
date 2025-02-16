@@ -18,7 +18,6 @@ EBTNodeResult::Type UIVBTTask_SpecialMove::ExecuteTask(UBehaviorTreeComponent& O
 	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 	if (Blackboard)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("스페셜 무브 시작"));
 		Blackboard->SetValueAsEnum(BBKEY_MONSTER_STATE, static_cast<uint8>(EMonsterState::SpecialMove));
 
 		// AI 캐릭터에게 스페셜 무브 명령을 전달

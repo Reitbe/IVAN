@@ -14,12 +14,11 @@ class UIIVLockOnTargetMarker : public UInterface
 };
 
 /**
- * LockOn 대상 판별용 마커
+ * LockOn 대상 판별용 마커. 
  */
 class IVAN_API IIIVLockOnTargetMarker
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 };
