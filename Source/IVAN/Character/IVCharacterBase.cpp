@@ -4,6 +4,7 @@
 #include "IVCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AIVCharacterBase::AIVCharacterBase()
@@ -45,28 +46,39 @@ AIVCharacterBase::AIVCharacterBase()
 	CloakMesh->SetupAttachment(GetMesh());
 }
 
-// Called when the game starts or when spawned
 void AIVCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-// Called every frame
 void AIVCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
 void AIVCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AIVCharacterBase::SetDead()
 {
+	// 캡슐 콜리전 처리
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// 물리 시뮬레이션 활성화
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
+	GetMesh()->bBlendPhysics = true;
+
+	// 메쉬 콜리전 래그돌 전환
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+
+	// 무브먼트 중지
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
 }
 
 void AIVCharacterBase::SetAlive()

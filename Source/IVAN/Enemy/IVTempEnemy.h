@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "IVAN/Interface/IIVLockOnTargetMarker.h"
 #include "IVTempEnemy.generated.h"
 
 class UWidgetComponent;
@@ -15,7 +16,7 @@ class UBoxComponent;
 */
 
 UCLASS()
-class IVAN_API AIVTempEnemy : public AActor
+class IVAN_API AIVTempEnemy : public AActor, public IIIVLockOnTargetMarker
 {
 	GENERATED_BODY()
 
@@ -36,7 +37,6 @@ protected:
 public:	
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-
 // 체력 스탯 및 위젯
 public:
 	/* 체력 위젯 장착용 위젯 컴포넌트 */
@@ -45,6 +45,7 @@ public:
 
 	/* 체력 바 위젯 */
 	TObjectPtr<UIVBaseStatBar> HealthBar;
+
 
 private:
 	float MaxHealth;

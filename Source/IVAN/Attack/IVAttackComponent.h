@@ -7,12 +7,13 @@
 #include "IVAN/IVGenericStructs.h"
 #include "IVAttackComponent.generated.h"
 
+class UIVAttackRange;
 class AIVWeapon;
 
 /*
 * 공격과 관련된 전반적인 기능을 담당하는 컴포넌트. 공격 몽타주 재생, 콤보 관리 등을 수행한다. 
 * Weapon클래스와는 WeaponInstance를 통해 연결되도록 설계했으나, 상위 클래스간 연결로 변경되었다.
-* 인터페이스는 그대로 유지하여 필구 구현 함수를 정의하고 있다.
+* 인터페이스는 그대로 유지하여 필수 구현 함수를 정의하고 있다.
 */
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -39,11 +40,13 @@ public:
 	/* 장비중인 무기를 반환한다 */
 	TObjectPtr<AIVWeapon> GetWeapon() const { return WeaponInstance; };
 
+	/* 플레이어가 직접 공격할 수 있는 타격 콜리전 전달*/
+	void ProvideOwnerAttackRanges(const TArray<UIVAttackRange*> AttackRanges);
+
 protected:
 	/* 현재 장비중인 무기 */
 	TObjectPtr<AIVWeapon> WeaponInstance;
 	
-
 
 // 애니메이션
 public:

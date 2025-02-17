@@ -3,7 +3,6 @@
 
 #include "IVCharacterStatComponent.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
-#include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
@@ -11,17 +10,13 @@ UIVCharacterStatComponent::UIVCharacterStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	
-	// 초기 상태 설정
+	// 초기 동작 상태 설정
 	MovementState = EMovementState::Idle;
 	GaitState = EGaitState::Walk;
 	JumpState = EJumpState::OnGround;
 	TargetingState = ETargetingState::NonTargeting;
+	SpecialMovementState = ESpecialMovementState::None;
 	LifeState = ELifeState::Alive;
-
-	// 초기 스탯 설정
-	BaseStat.MaxHP = 100.0f;
-	BaseStat.CurrentHP = BaseStat.MaxHP;
-	BaseDamageStat.BaseDamage = 20.0f;
 }
 
 void UIVCharacterStatComponent::BeginPlay()
@@ -37,15 +32,10 @@ void UIVCharacterStatComponent::BeginPlay()
 	}
 
 	// 글로벌 이벤트 서브시스템을 통해 사망 및 부활 이벤트 제어
-	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-	if (GameInstance)
+	if (LifeEventSubsystem)
 	{
-		LifeEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
-		if (LifeEventSubsystem)
-		{
-			LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetDead);
-			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetAlive);
-		}
+		LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetDead);
+		LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &UIVCharacterStatComponent::SetAlive);
 	}
 }
 
@@ -63,8 +53,10 @@ void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
-float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
 	DetachStat(FBaseStat(0.0f, Damage, 0.0f, 0.0f)); // 체력 감소 처리
 
 	// 체력이 0 이하로 떨어지면 사망 처리
@@ -77,61 +69,39 @@ float UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& Da
 		{
 			LifeEventSubsystem->PlayerDeathEventDelegate.Broadcast();
 		}
+		return false;
 	}
-	return 0.0f;
+	return true;
 }
 
 void UIVCharacterStatComponent::SetDead()
 {
+	Super::SetDead();
+
 	LifeState = ELifeState::Dead;
 
 	// 2초 후 부활 브로드캐스트
-	FTimerHandle RespawnTimer;
-	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
-		{
-			if (LifeEventSubsystem)
-			{
-				LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
-			}
-		}, 2.0f, false);
+	//FTimerHandle RespawnTimer;
+	//GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
+	//	{
+	//		if (LifeEventSubsystem)
+	//		{
+	//			LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
+	//		}
+	//	}, 2.0f, false);
 }
 
 void UIVCharacterStatComponent::SetAlive()
 {
+	Super::SetAlive();
+
+	//GaitState = EGaitState::Walk; // 캐릭터 속도 초기화와 함께 GaitState도 초기화 진행
+	//TargetingState = ETargetingState::NonTargeting; // 캐릭터와 함께 TargetingState도 초기화 진행
+	MovementState = EMovementState::Idle;
+	JumpState = EJumpState::OnGround;
+	SpecialMovementState = ESpecialMovementState::None;
 	LifeState = ELifeState::Alive;
+
 	SetBaseStat(FBaseStat(BaseStat.MaxHP, BaseStat.MaxHP, BaseStat.MaxStamina, BaseStat.MaxStamina)); // 체력 회복
-}
-
-void UIVCharacterStatComponent::AttachStat(const FBaseStat& OtherStat)
-{
-	BaseStat = BaseStat + OtherStat;
-	OnBaseStatChanged.ExecuteIfBound(BaseStat);
-}
-
-void UIVCharacterStatComponent::AttachStat(const FBaseDamageStat& OtherStat)
-{
-	BaseDamageStat = BaseDamageStat + OtherStat;
-}
-
-void UIVCharacterStatComponent::DetachStat(const FBaseStat& OtherStat)
-{
-	BaseStat = BaseStat - OtherStat;
-	OnBaseStatChanged.ExecuteIfBound(BaseStat);
-}
-
-void UIVCharacterStatComponent::DetachStat(const FBaseDamageStat& OtherStat)
-{
-	BaseDamageStat = BaseDamageStat - OtherStat;
-}
-
-void UIVCharacterStatComponent::SetBaseStat(const FBaseStat& NewBaseStat)
-{
-	BaseStat = NewBaseStat;
-	OnBaseStatChanged.ExecuteIfBound(BaseStat);
-}
-
-void UIVCharacterStatComponent::SetBaseDamageStat(const FBaseDamageStat& NewBaseDamageStat)
-{
-	BaseDamageStat = NewBaseDamageStat;
 }
 

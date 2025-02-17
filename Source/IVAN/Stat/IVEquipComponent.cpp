@@ -46,6 +46,12 @@ void UIVEquipComponent::EquipWeapon()
 
 void UIVEquipComponent::UnequipWeapon()
 {
+	// 무기 물리	시뮬레이션 활성화
+	if (WeaponInstance)
+	{
+		WeaponInstance->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		WeaponInstance->DropWeapon();
+	}
 }
 
 void UIVEquipComponent::ChangeWeapon(TSubclassOf<AIVWeapon> NewWeaponClass)

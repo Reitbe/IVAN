@@ -16,11 +16,7 @@ AIVWeapon::AIVWeapon()
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetRootComponent(WeaponMesh);
 
-	// 충돌 탐지용 콜라이더 생성
-	HitCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollider"));
-	HitCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HitCollider->SetupAttachment(RootComponent);
-
+	// 데미지 스탯 초기화
 	TotalDamage = 0.0f;
 	MaxComboCount = 0;
 }
@@ -31,11 +27,22 @@ void AIVWeapon::PostInitializeComponents()
 
 	// 콤보 몽타주 수로 최대 콤보 수 결정
 	MaxComboCount = ComboMontages.Num();
+
+	// 무기에 부착된 공격 범위 콜라이더들을 찾아 저장
+	GetComponents<UIVAttackRange>(HitColliders);
 }
 
 void AIVWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AIVWeapon::DropWeapon()
+{
+	// 소유자와 독립적으로 월드에 존재하기 위하여 물리 시뮬레이션 활성화
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	WeaponMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	WeaponMesh->SetSimulatePhysics(true);
 }
 
 void AIVWeapon::SetOwnerController(AController* NewOwnerController)
@@ -53,6 +60,11 @@ void AIVWeapon::SetOwnerDamageStat(FBaseDamageStat NewDamageStat)
 		+ DamageStat.BaseDamage + DamageStat.AdditionalDamage;
 }
 
+void AIVWeapon::SetOwnerAttackRanges(const TArray<UIVAttackRange*>& AttackRanges)
+{
+	HitColliders.Append(AttackRanges);
+}
+
 UAnimMontage* AIVWeapon::GetComboMontage(int32 ComboIndex) const
 {
 	if (ComboMontages.IsValidIndex(ComboIndex))
@@ -64,41 +76,54 @@ UAnimMontage* AIVWeapon::GetComboMontage(int32 ComboIndex) const
 
 void AIVWeapon::HitDetection()
 {
-	// 콜라이더의 위치와 방향을 기준으로 Trace
-	FVector Start = HitCollider->GetComponentLocation();
-	FQuat Rotation = HitCollider->GetComponentQuat();
-	FCollisionShape CollisionShape = HitCollider->GetCollisionShape();
-
-	// Trace를 통해 충돌한 액터들을 저장
-	TArray<FHitResult> HitResults;
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-
-	// Trace 진행
-	if (GetWorld()->SweepMultiByObjectType(
-		HitResults,
-		Start,
-		Start,
-		Rotation,
-		FCollisionObjectQueryParams::AllDynamicObjects,
-		CollisionShape))
+	// 보유한 모든 콜라이더에 대하여 Trace 진행
+	for (UIVAttackRange* HitCollider : HitColliders)
 	{
-		// 이번 Trace에서 충돌한 액터들에게 데미지 적용
-		for (const FHitResult& HitResult : HitResults)
+		// 콜라이더의 위치와 방향을 기준으로 Trace
+		TArray<FHitResult> HitResults;
+		FVector Start = HitCollider->GetComponentLocation(); // 종료 지점 동일
+		FQuat Rotation = HitCollider->GetComponentQuat();
+		FCollisionShape CollisionShape = HitCollider->GetCollisionShape();
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(this);
+
+		// Trace 진행
+		if (GetWorld()->SweepMultiByObjectType(
+			HitResults,
+			Start,
+			Start,
+			Rotation,
+			FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+			CollisionShape,
+			CollisionParams))
 		{
-			if (!HitActors.Contains(HitResult.GetActor()) && HitResult.GetActor() != Owner)
+			// 이번 Trace에서 충돌한 액터들에게 데미지 적용
+			for (const FHitResult& HitResult : HitResults)
 			{
-				UGameplayStatics::ApplyPointDamage(
-					HitResult.GetActor(),
-					TotalDamage,
-					HitResult.Normal,
-					HitResult,
-					OwnerController,
-					this,
-					UDamageType::StaticClass());
-				HitActors.Add(HitResult.GetActor());
+				if (!HitActors.Contains(HitResult.GetActor()) && HitResult.GetActor() != Owner)
+				{
+					UGameplayStatics::ApplyPointDamage(
+						HitResult.GetActor(),
+						TotalDamage,
+						HitResult.Normal,
+						HitResult,
+						OwnerController,
+						this,
+						UDamageType::StaticClass());
+					HitActors.Add(HitResult.GetActor());
+				}
 			}
 		}
+
+		// 궤적 확인용 디버그 콜라이더 생성
+		DrawDebugCapsule(
+			GetWorld(),
+			Start,
+			CollisionShape.GetCapsuleHalfHeight(),
+			CollisionShape.GetCapsuleRadius(),
+			Rotation, FColor::Red,
+			false,
+			1.0f);
 	}
 }
 

@@ -32,7 +32,7 @@ public:
 // 피격 각도 및 적합한 애니메이션 판단
 public:
 	/* 피격 정보와 오너의 방향 정보를 통해 공격이 들어온 방향을 계산한다 */
-	void ComputeHitAngle(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+	bool ComputeHitAngle(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 private:
 	/* 앞서 계산한 피격 각도를 사용해 방향에 따른 피격 애니메이션을 재생한다 */
@@ -43,6 +43,10 @@ private:
 public:
 	/* 피격 애니메이션을 재생할 대상의 AnimInstance 설정 */
 	void SetAnimInstance(TObjectPtr<UAnimInstance> NewAnimInstance) { AnimInstance = NewAnimInstance; };
+
+	/* 사망 애니메이션 재생 */
+	void PlayDeathMontage();
+
 
 protected:
 	/* 피격 대상(오너)의 AnimInstance */
@@ -63,13 +67,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit Reaction") // 오른쪽 피격
 	TObjectPtr<UAnimMontage> RightHitMontage;
 
-// 설정 관련 변수
-protected:
-	/* 피격 리액션 사용 여부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reaction Option")
-	uint8 bIsUsingHitReaction : 1;
 
-	/* 사망 시 래그돌 사용 여부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reaction Option")
-	uint8 bIsUsingRagdoll : 1;
+// 사망 리액션 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death Reaction")
+	TObjectPtr<UAnimMontage> DeathMontage;
+
+
+// 설정 관련 변수
+public: 
+	void SetUsingHitReaction(bool bNewUsingHitReaction) { bIsUsingHitReaction = bNewUsingHitReaction; };
+
+private:
+	/* 피격 리액션 사용 여부 */
+	uint8 bIsUsingHitReaction : 1;
 };

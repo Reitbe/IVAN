@@ -9,10 +9,7 @@
 UIVHitReactionComponent::UIVHitReactionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// 변수 초기화
 	bIsUsingHitReaction = true;
-	bIsUsingRagdoll = false;
 }
 
 void UIVHitReactionComponent::BeginPlay()
@@ -26,9 +23,9 @@ void UIVHitReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 }
 
 // AActor의 TakeDamage 정보를 그대로 가져와서 사용
-void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+bool UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (!bIsUsingHitReaction || !GetOwner()) return; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
+	if (!bIsUsingHitReaction || !GetOwner()) return false; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
 
 	AActor* Owner = GetOwner(); // 피격 대상
 	float Angle = 0.0f;	 
@@ -37,7 +34,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 	if(DamageCauser)
 	{
 		// 이후 연산을 위한 벡터 정규화
-		FVector CharacterFoward = Owner->GetActorForwardVector().GetSafeNormal();
+		FVector CharacterFoward = Owner->GetActorForwardVector().GetSafeNormal(); // 이미 정규화 되어있긴 하다
 		FVector HitDirection = (DamageCauser->GetActorLocation() - Owner->GetActorLocation()).GetSafeNormal();
 
 		// 캐릭터 정면 기준 공격 방향 각도
@@ -56,7 +53,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 		/*
 		* CrossProduct :
 		*	캐릭터 정면을 기준으로 피격 방향과의 외적을 진행한다. 오른손 법칙에 따라
-		*	외적값이 양수라면 정면 기준 왼쪽 피격이고 음수라면 오른쪽 피격이다.
+		*	외적값이 양수라면 공격자가 오른 쪽, 음수라면 왼쪽에서 공격을 받았다고 판단한다.
 		* Angle : 
 		*	정면 +-0도, 후면 +-180도를 기준으로 오른쪽(0~180), 왼쪽(-0~-180)범위이다.
 		*/
@@ -69,6 +66,7 @@ void UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 	{
 		PlayHitReactionMontage(Angle);
 	}
+	return true;
 }
 
 void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
@@ -97,7 +95,7 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 
 	AnimInstance->Montage_Play(HitReactionMontage); // 몽타주 재생
 
-	// 피격 애니메이션 종료 시 오너의 피격 리액션 종료
+	// 피격 애니메이션 종료 후 피격 상태 해제
 	FOnMontageBlendingOutStarted BlendingOutDelegate;
 	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
 		{
@@ -108,5 +106,24 @@ void UIVHitReactionComponent::PlayHitReactionMontage(float Angle)
 			}
 		});
 	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, HitReactionMontage);
+}
+
+void UIVHitReactionComponent::PlayDeathMontage()
+{
+	if (!AnimInstance || !DeathMontage) return;
+
+	AnimInstance->Montage_Play(DeathMontage); // 사망 몽타주 재생
+
+	// 몽타주 종료 후 처리(래그돌 사용 등)
+	FOnMontageBlendingOutStarted BlendingOutDelegate;
+	BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+		{
+			IIIVHitReactionInterface* HitReactionInterface = Cast<IIIVHitReactionInterface>(GetOwner());
+			if (HitReactionInterface)
+			{
+				HitReactionInterface->EndDeathReaction();
+			}
+		});
+	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, DeathMontage);
 }
 

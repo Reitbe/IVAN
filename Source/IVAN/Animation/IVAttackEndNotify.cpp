@@ -4,9 +4,9 @@
 #include "IVAttackEndNotify.h"
 #include "IVAN/Interface/IIVAttackEndInterface.h"
 
-void UIVAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UIVAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	Super::Notify(MeshComp, Animation);
+	Super::Notify(MeshComp, Animation, EventReference);
 
 	if (MeshComp)
 	{

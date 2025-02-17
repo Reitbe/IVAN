@@ -3,21 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IVAN/Stat/IVBaseStatComponent.h"
 #include "Components/ActorComponent.h"
-#include "IVAN/IVGenericStructs.h"
 #include "IVAN/Enums/IVCharacterStateEnums.h"
 #include "IVCharacterStatComponent.generated.h"
 
-DECLARE_DELEGATE_OneParam(FBaseStatChangedDelegate, const FBaseStat&);
-
 class UCharacterMovementComponent;
-class UIVDeathEventSubsystem;
 
 /*
 * 캐릭터 동작 및 스탯 정보를 관리하는 컴포넌트.
 */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class IVAN_API UIVCharacterStatComponent : public UActorComponent
+class IVAN_API UIVCharacterStatComponent : public UIVBaseStatComponent
 {
 	GENERATED_BODY()
 
@@ -31,44 +28,10 @@ protected:
 
 
 // 정보 갱신 관련
-public: 
-	/* 캐릭터 사망, 부활 이벤트를 담당하는 글로벌 이벤트 서브시스템 */
-	TObjectPtr<UIVDeathEventSubsystem> LifeEventSubsystem;
-
-	/* 캐릭터의 기본 스탯 변경 정보를 전달하는 대리자 */
-	FBaseStatChangedDelegate OnBaseStatChanged;
-
-private:
-	void SetDead();		// 사망 처리
-	void SetAlive();	// 부활 처리
-
-
-// 캐릭터 스탯 정보(체력, 스테미나, 데미지)
 protected:
-	/* 체력, 스테미나가 담긴 기본 스탯 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats");
-	FBaseStat BaseStat;
+	virtual void SetDead() override;	// 사망 처리
+	virtual void SetAlive() override;	// 부활 처리
 
-	/* 기본 공격력, 추가 공력력, 방어력이 담긴 데미지 스텟*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats");
-	FBaseDamageStat BaseDamageStat;
-
-public:
-	/* 스탯 간 더하기 연산 -> 아이템 사용, 장비 장착 등*/
-	void AttachStat(const FBaseStat& OtherStat); // 위젯 갱신을 위한 대리자 호출
-	void AttachStat(const FBaseDamageStat& OtherStat);
-
-	/* 스탯 간 빼기 연산 -> 장비 해제 등 */ 
-	void DetachStat(const FBaseStat& OtherStat); // 위젯 갱신을 위한 대리자 호출
-	void DetachStat(const FBaseDamageStat& OtherStat);
-
-	/* 스텟을 불러와 적용하는 용도 */
-	void SetBaseStat(const FBaseStat& NewBaseStat); // 위젯 갱신을 위한 대리자 호출
-	void SetBaseDamageStat(const FBaseDamageStat& NewBaseDamageStat);
-
-	FBaseStat GetBaseStat() const { return BaseStat; };
-	FBaseDamageStat GetBaseDamageStat() const { return BaseDamageStat; };
-	
 
 // 캐릭터 동작 상태 정보
 protected:
@@ -114,6 +77,6 @@ public:
 // 데미지 처리
 public:
 	/* 캐릭터의 TakeDamage 함수를 그대로 넘겨받아 데미지 처리*/
-	float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+	virtual bool TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 };
