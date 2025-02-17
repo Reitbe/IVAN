@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IVAN/Character/IVCharacterBase.h"
+#include "IVAN/Controller/IVPlayerController.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVAttackEndInterface.h"
 #include "IVAN/Interface/IIVWeaponProvider.h"
@@ -51,8 +52,11 @@ protected:
 	virtual void PostInitializeComponents() override;
 
 private:
-	/* 캐릭터 플레이어 컨트롤러*/
-	TObjectPtr<APlayerController> PlayerController;
+	/* 
+	* 캐릭터 플레이어 컨트롤러
+	* 타겟팅 시 UI제어를 별도의 인터페이스로 분리하면 APlayerController로 변경 가능
+	*/
+	TObjectPtr<AIVPlayerController> PlayerController;
 
 
 // 스텟 시스템
@@ -69,12 +73,6 @@ public:
 	/* 캐릭터에 부착된 공격 컴포넌트 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
 	TArray<UIVAttackRange*> AttackRanges;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-	//TObjectPtr<UIVAttackRange> RightCalfAttackRange;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-	//TObjectPtr<UIVAttackRange> LeftCalfAttackRange;
 
 
 // 데미지 처리
@@ -103,8 +101,11 @@ protected:
 protected:
 	void LockOn();	// 락온
 	void LockOff(); // 락오프
+	bool IsTargetVisibleByLineTrace(AActor* Target); // 시야에 있는지 확인
 	void CheckLockOnDistance(); // 락온 거리 체크
 	void MonsterDeath(AActor* DeadMonster); // 타겟이 죽었을 때 처리
+
+	// 타겟이 시야에 있는지 확인하기 위한 라인 트레이스
 
 	/* 현재 타겟팅중인 대상 */
 	TObjectPtr<AActor> LockOnActor; 

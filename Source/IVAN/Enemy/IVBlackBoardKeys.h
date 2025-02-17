@@ -13,6 +13,8 @@
 #define BBKEY_MEDIUM_ATTACK_DISTANCE TEXT("MediumAttackDistance")
 #define BBKEY_LONG_ATTACK_DISTANCE TEXT("LongAttackDistance")
 #define BBKEY_RANDOM_INDEX TEXT("RandomIndex")
+#define BBKEY_HP_UI_STATE TEXT("bIsHPUIActive")
+#define BBKEY_UI_ACTIVE_DISTANCE TEXT("UIActiveDistance")
 
 /**
  * 블랙보드와 연결된 키들을 정의하는 클래스.

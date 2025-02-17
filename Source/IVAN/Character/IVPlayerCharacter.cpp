@@ -54,10 +54,6 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
 
-	//// 임시 공격 범위 생성
-	//RightCalfAttackRange = CreateDefaultSubobject<UIVAttackRange>(TEXT("RightCalfAttackRange"));
-	//LeftCalfAttackRange = CreateDefaultSubobject<UIVAttackRange>(TEXT("LeftCalftAttackRange"));
-
 	LockOnDistance = 1000.0f;
 }
 
@@ -208,11 +204,7 @@ void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
 		* 현재는 임시로 플레이어 캐릭터의 특정 소켓을 사용한다.
 		*/
 		FName SocketName(TEXT("hand_rSocket"));
-		if (!GetMesh()->DoesSocketExist(SocketName))
-		{
-			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
-			return;
-		}
+		if (!GetMesh()->DoesSocketExist(SocketName)) return;
 		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	}
 
@@ -254,7 +246,7 @@ void AIVPlayerCharacter::EndDeathReaction()
 void AIVPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	PlayerController = Cast<APlayerController>(GetController());
+	PlayerController = Cast<AIVPlayerController>(GetController());
 
 	// 입력 컨텍스트 등록
 	if (PlayerController != nullptr)
@@ -303,21 +295,6 @@ void AIVPlayerCharacter::PostInitializeComponents()
 	
 	// 보유한 공격 범위 콜라이더 찾아오기
 	GetComponents<UIVAttackRange>(AttackRanges);
-
-	//AttackRanges.Add(RightCalfAttackRange);
-	//AttackRanges.Add(LeftCalfAttackRange);
-
-	//FName ClafRSocket(TEXT("calf_r_socket"));
-	//if (GetMesh()->DoesSocketExist(ClafRSocket))
-	//{
-	//	RightCalfAttackRange->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ClafRSocket);
-	//}
-
-	//FName ClafLSocket(TEXT("calf_l_socket"));
-	//if (GetMesh()->DoesSocketExist(ClafLSocket))
-	//{
-	//	LeftCalfAttackRange->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ClafLSocket);
-	//}
 }
 
 TObjectPtr<AIVWeapon> AIVPlayerCharacter::GetWeapon() const
@@ -349,9 +326,8 @@ void AIVPlayerCharacter::Tick(float DeltaTime)
 		if (CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting && LockOnActor)
 		{
 			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnActor->GetActorLocation());
-			PlayerController->SetControlRotation(LookAtRotation);
-			//FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 10.0f);
-			//PlayerController->SetControlRotation(NewRotation);
+			FRotator NewRotation = FMath::RInterpTo(GetControlRotation(), LookAtRotation, DeltaTime, 5.0f);
+			PlayerController->SetControlRotation(NewRotation);
 		}
 	}
 }
@@ -408,9 +384,6 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 
 			if (!MoveDirection.IsNearlyZero())
 			{
-				//FRotator TargetRotation = MoveDirection.Rotation();
-				//SetActorRotation(TargetRotation);
-
 				// 해당 방향으로 보간하여 부드럽게 회전
 				FRotator TargetRotation = UKismetMathLibrary::MakeRotFromX(MoveDirection);
 				FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 10.0f);
@@ -542,13 +515,16 @@ void AIVPlayerCharacter::LockOn()
 		for (const FHitResult& HitResult : HitResults)
 		{
 			AActor* HitActor = HitResult.GetActor();
-			if (HitActor && HitActor->Implements<UIIVLockOnTargetMarker>()) // 락온 대상 조건
+			if (HitActor && HitActor->Implements<UIIVLockOnTargetMarker>()) // 락온 대상 조건 확인
 			{
-				float Distance = FVector::Distance(Start, HitActor->GetActorLocation());
-				if (Distance < ClosestDistance)
+				if (IsTargetVisibleByLineTrace(HitActor)) // 시야에 있는지 확인
 				{
-					ClosestDistance = Distance;
-					ClosestActor = HitActor;
+					float Distance = FVector::Distance(Start, HitActor->GetActorLocation());
+					if (Distance < ClosestDistance)
+					{
+						ClosestDistance = Distance;
+						ClosestActor = HitActor;
+					}
 				}
 			}
 		}
@@ -556,15 +532,18 @@ void AIVPlayerCharacter::LockOn()
 		// 실질 락온 작업
 		if (ClosestActor)
 		{
+			// 플레이어 입력 및 거리에 따른 종료 조건 제어
 			LockOnActor = ClosestActor;
 			GetController()->SetIgnoreLookInput(true); // 락온 중 시점 입력 무시
 			GetWorldTimerManager().SetTimer(LockOnCheckTimer, this, &AIVPlayerCharacter::CheckLockOnDistance, 0.1f, true);
-
-			//bUseControllerRotationYaw = true;
-			//GetCharacterMovementComponent()->bOrientRotationToMovement = false;
+		
+			// 타겟 액터에 마킹 위젯 표시
+			if (PlayerController)
+			{
+				PlayerController->ShowTargetMarker(ClosestActor);
+			}
 		}
 	}
-
 }
 
 void AIVPlayerCharacter::LockOff()
@@ -573,16 +552,42 @@ void AIVPlayerCharacter::LockOff()
 	GetController()->SetIgnoreLookInput(false); // 락온 해제 시 시점 입력 허용
 	GetWorldTimerManager().ClearTimer(LockOnCheckTimer);
 
-	//bUseControllerRotationYaw = false;
-	//GetCharacterMovementComponent()->bOrientRotationToMovement = true;
+	// 타겟 액터에 마킹 위젯 해제
+	if (PlayerController)
+	{
+		PlayerController->HideTargetMarker();
+	}
+}
+
+bool AIVPlayerCharacter::IsTargetVisibleByLineTrace(AActor* Target)
+{
+	if (!Target) return false;
+
+	FVector TargetLocation = Target->GetActorLocation();
+	FHitResult SightResult;
+	FCollisionQueryParams SightParams;
+	SightParams.AddIgnoredActor(this);
+	SightParams.AddIgnoredActor(Target);
+
+	// 타깃과 본인 사이가 가로막혀있다면 시야에 없는 것으로 판단
+	bool bCanSee = !GetWorld()->LineTraceSingleByChannel(
+		SightResult,
+		GetActorLocation(),
+		TargetLocation,
+		ECC_Visibility, 
+		SightParams
+	);
+
+	return bCanSee;
 }
 
 void AIVPlayerCharacter::CheckLockOnDistance()
 {
 	if (LockOnActor)
 	{
+		// 거리를 벗어나거나 시야에 없다면 락온 해제
 		float Distance = FVector::Distance(GetActorLocation(), LockOnActor->GetActorLocation());
-		if (Distance > LockOnDistance)
+		if (Distance > LockOnDistance || !IsTargetVisibleByLineTrace(LockOnActor))
 		{
 			LockOnSwitch();
 		}

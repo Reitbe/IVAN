@@ -22,9 +22,12 @@ class IVAN_API AIVSimpleStatHUD : public AHUD
 {
 	GENERATED_BODY()
 
+// 기본
 public:
 	AIVSimpleStatHUD();
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+
 
 // 플레이어 사망 및 부활 처리
 protected:
@@ -38,12 +41,23 @@ public:
 	void ShowBossStatWidget(AIVBossEnemy* Boss);
 	void HideBossStatWidget();
 
+// 타겟팅 마커 표시
+	void OnTargetDeath(AActor* DeadTarget);
+	void ShowTargetMarker(AActor* Target);
+	void HideTargetMarker();
+
 // UI 관리
 protected:
-	/* 스텟 위젯 갱신을 위한 정보 습득용 컴포넌트 */
+	/* 캐릭터 스텟 위젯 갱신을 위한 정보 습득용 컴포넌트 */
 	TObjectPtr<UIVCharacterStatComponent> CharacterStatComponent;
+
+	/* 보스 스텟 위젯 갱신을 위한 정보 습득용 컴포넌트 */ 
 	TObjectPtr<UIVMonsterStatComponent> BossStatComponent;
 	TObjectPtr<AActor> BossEnemy;
+
+	/* 타겟팅 마커 위젯 갱신용 */
+	TObjectPtr<AActor> TargetActor;
+	uint8 bShowTargetMarker : 1;
 
 
 // UI 
@@ -57,7 +71,21 @@ protected:
 
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UIVSimpleBossStatWidget> BossStatWidgetClass;
-	TObjectPtr< UIVSimpleBossStatWidget> BossStatWidget;
+	TObjectPtr<UIVSimpleBossStatWidget> BossStatWidget;
+
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UUserWidget> BossClearWidgetClass;
+	TObjectPtr<UUserWidget> BossClearWidget;
+
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UUserWidget> TargetMarkerWidgetClass;
+	TObjectPtr<UUserWidget> TargetMarkerWidget;
+
+
+// 위젯 애니메이션
+//public:
+//	UPROPERTY(BlueprintReadWrite, EditAnyWhere, Category = "UI", meta = (BindWidgetAnim))
+//	TObjectPtr<UWidgetAnimation> FadeWidgetAnimation;
 
 
 };

@@ -2,6 +2,7 @@
 
 
 #include "IVSimpleStatHUD.h"
+#include "Kismet/GameplayStatics.h"
 #include "IVAN/Enemy/IVBossEnemy.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
@@ -14,6 +15,8 @@
 
 AIVSimpleStatHUD::AIVSimpleStatHUD()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// HUD에 표시할 위젯 클래스
 	static ConstructorHelpers::FClassFinder<UIVSimpleStatWidget> PlayerStatWidgetClassFinder
 	(TEXT("/Game/Widget/WBP_SimpleStat.WBP_SimpleStat_C"));
@@ -30,13 +33,30 @@ AIVSimpleStatHUD::AIVSimpleStatHUD()
 		DeathWidgetClass = DeathWidgetClassFinder.Class;
 	}
 
-	// 사망 시 표시할 위젯 클래스
+	// 보스 스텟 표시용 위젯 클래스
 	static ConstructorHelpers::FClassFinder<UUserWidget> BossStatWidgetClassFinder
 	(TEXT("/Game/Widget/WBP_SimpleBossStat.WBP_SimpleBossStat_C"));
 	if (BossStatWidgetClassFinder.Class)
 	{
 		BossStatWidgetClass = BossStatWidgetClassFinder.Class;
 	}
+
+	// 보스 클리어 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UUserWidget> BossClearWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_BossClear.WBP_BossClear_C"));
+	if (BossClearWidgetClassFinder.Class)
+	{
+		BossClearWidgetClass = BossClearWidgetClassFinder.Class;
+	}
+
+	// 타겟팅 대상에 부착할 마커 클래스
+	static ConstructorHelpers::FClassFinder<UUserWidget> TargetMarkerWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_TargetMarker.WBP_TargetMarker_C"));
+	if (TargetMarkerWidgetClassFinder.Class)
+	{
+		TargetMarkerWidgetClass = TargetMarkerWidgetClassFinder.Class;
+	}
+
 }
 
 void AIVSimpleStatHUD::BeginPlay()
@@ -47,24 +67,40 @@ void AIVSimpleStatHUD::BeginPlay()
 	if (DeathWidgetClass)
 	{
 		DeathWidget = CreateWidget<UUserWidget>(GetWorld(), DeathWidgetClass);
-		DeathWidget->AddToViewport(2); // 앞에 배치
+		DeathWidget->AddToViewport(4); // 앞에 배치
 		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	// 플레이어 스텟 표시용 위젯 생성
-	if (PlayerStatWidgetClass)
+	// 보스 클리어 위젯 생성
+	if (BossClearWidgetClass)
 	{
-		PlayerStatWidget = CreateWidget<UIVSimpleStatWidget>(GetWorld(), PlayerStatWidgetClass);
-		PlayerStatWidget->AddToViewport(0); // 뒤에 배치
-		PlayerStatWidget->SetVisibility(ESlateVisibility::Visible);
+		BossClearWidget = CreateWidget<UUserWidget>(GetWorld(), BossClearWidgetClass);
+		BossClearWidget->AddToViewport(3); // 중간에 배치
+		BossClearWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	// 보스 스텟 표시용 위젯 생성
 	if (BossStatWidgetClass)
 	{
 		BossStatWidget = CreateWidget<UIVSimpleBossStatWidget>(GetWorld(), BossStatWidgetClass);
-		BossStatWidget->AddToViewport(1); // 중간에 배치
+		BossStatWidget->AddToViewport(2); // 중간에 배치
 		BossStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 플레이어 스텟 표시용 위젯 생성
+	if (PlayerStatWidgetClass)
+	{
+		PlayerStatWidget = CreateWidget<UIVSimpleStatWidget>(GetWorld(), PlayerStatWidgetClass);
+		PlayerStatWidget->AddToViewport(1); // 뒤에 배치
+		PlayerStatWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	// 타겟팅 마크 위젯 생성
+	if (TargetMarkerWidgetClass)
+	{
+		TargetMarkerWidget = CreateWidget<UUserWidget>(GetWorld(), TargetMarkerWidgetClass);
+		TargetMarkerWidget->AddToViewport(0); // 가장 뒤에 배치
+		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
@@ -78,12 +114,30 @@ void AIVSimpleStatHUD::BeginPlay()
 			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerAlive);
 			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindPlayerStatWidget);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnBossDeath);
+			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnTargetDeath);
+		}
+	}
+}
+
+void AIVSimpleStatHUD::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bShowTargetMarker && TargetActor && TargetMarkerWidget)
+	{
+		FVector2D ScreenLocation;
+		if (UGameplayStatics::ProjectWorldToScreen(GetOwningPlayerController(), TargetActor->GetActorLocation(), ScreenLocation))
+		{
+			TargetMarkerWidget->SetPositionInViewport(ScreenLocation);
 		}
 	}
 }
 
 void AIVSimpleStatHUD::OnPlayerDeath()
 {
+	// 타겟 마커 숨기고
+	HideTargetMarker();
+
 	// 플레이어 스탯 위젯 숨기고
 	if(PlayerStatWidget)
 	{
@@ -137,6 +191,22 @@ void AIVSimpleStatHUD::OnBossDeath(AActor* DeadMonster)
 	if (BossEnemy && BossEnemy == DeadMonster)
 	{
 		HideBossStatWidget();
+
+		// 보스 클리어 위젯 띄우기
+		if (BossClearWidget)
+		{
+			BossClearWidget->SetVisibility(ESlateVisibility::Visible);
+
+			// 5초 후에 숨기기
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()
+				{
+					if (BossClearWidget)
+					{
+						BossClearWidget->SetVisibility(ESlateVisibility::Collapsed);
+					}
+				}), 3.0f, false);
+		}
 	}
 }
 
@@ -177,5 +247,35 @@ void AIVSimpleStatHUD::HideBossStatWidget()
 	if (BossStatWidget)
 	{
 		BossStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AIVSimpleStatHUD::OnTargetDeath(AActor* DeadTarget)
+{
+	if (TargetActor && TargetActor == DeadTarget)
+	{
+		HideTargetMarker();
+	}
+}
+
+void AIVSimpleStatHUD::ShowTargetMarker(AActor* Target)
+{
+	TargetActor = Target;
+	bShowTargetMarker = true;
+	
+	if (TargetMarkerWidget)
+	{
+		TargetMarkerWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AIVSimpleStatHUD::HideTargetMarker()
+{
+	TargetActor = nullptr;
+	bShowTargetMarker = false;
+
+	if (TargetMarkerWidget)
+	{
+		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

@@ -93,6 +93,22 @@ void AIVPlayerController::HideBossStatWidget()
 	}
 }
 
+void AIVPlayerController::ShowTargetMarker(AActor* Target)
+{
+	if (SimpleStatHUD)
+	{
+		SimpleStatHUD->ShowTargetMarker(Target);
+	}
+}
+
+void AIVPlayerController::HideTargetMarker()
+{
+	if (SimpleStatHUD)
+	{
+		SimpleStatHUD->HideTargetMarker();
+	}
+}
+
 void AIVPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();

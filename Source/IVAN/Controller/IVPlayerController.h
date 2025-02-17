@@ -43,6 +43,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HideBossStatWidget();
 
+	/* 플레이어 타겟팅 시 타겟 액터에 마커를 표시하기 위한 함수 */
+	UFUNCTION(BlueprintCallable)
+	void ShowTargetMarker(AActor* Target);
+
+	UFUNCTION(BlueprintCallable)
+	void HideTargetMarker();
+
+
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;

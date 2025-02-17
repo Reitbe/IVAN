@@ -87,10 +87,7 @@ void AIVEnemy::BeginPlay()
 		{
 			MonsterStatComponent->OnHpChanged.BindUObject(HealthBar, &UIVBaseStatBar::UpdateStatBar);
 		}
-		else
-		{
-			HealthBar->SetVisibility(ESlateVisibility::Collapsed);
-		}
+		HealthBar->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	// 몬스터 사망 이벤트 바인딩
@@ -102,6 +99,12 @@ void AIVEnemy::BeginPlay()
 
 void AIVEnemy::SetDead()
 {
+	// 몽타주 중지
+	if (AnimInstance)
+	{
+		AnimInstance->StopAllMontages(0.3f);
+	}
+
 	// UI 처리
 	if (MonsterType == EMonsterType::Normal && HealthBar)
 	{
@@ -234,5 +237,21 @@ void AIVEnemy::ExecuteBasicAttack()
 	if (AttackComponent)
 	{
 		AttackComponent->Attack(BaseDamageStat);
+	}
+}
+
+void AIVEnemy::ShowStatWidget() const
+{
+	if (MonsterType == EMonsterType::Normal && HealthBar)
+	{
+		HealthBar->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AIVEnemy::HideStatWidget() const
+{
+	if (MonsterType == EMonsterType::Normal && HealthBar)
+	{
+		HealthBar->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

@@ -13,6 +13,7 @@
 #include "IVAN/Interface/IIVAIControllerBasicCombat.h"
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
 #include "IVAN/Interface/IIVLockOnTargetMarker.h"
+#include "IVAN/Interface/IIVAIUIControl.h"
 #include "IVEnemy.generated.h"
 
 class UIVAttackRange;
@@ -35,6 +36,7 @@ class IVAN_API AIVEnemy
 	, public IIIVAICharacterBasicCombat
 	, public IIIVMonsterComponentProvider
 	, public IIIVLockOnTargetMarker
+	, public IIIVAIUIControl
 {
 	GENERATED_BODY()
 
@@ -131,4 +133,9 @@ public:
 
 	/* IIIVMonsterComponentProvider 인터페이스->몬스터 스탯 컴포넌트 접근용 */
 	virtual UIVMonsterStatComponent* GetMonsterStatComponent() const override { return MonsterStatComponent; };
+
+	/* IIIVAIUIControl 인터페이스 -> 위젯 제어용 */
+	virtual void ShowStatWidget() const override;
+	virtual void HideStatWidget() const override;
+
 };
