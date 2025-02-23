@@ -23,4 +23,5 @@ class IVAN_API IIIVAttackEndInterface
 
 public:
 	virtual void AttackEnd(bool bIsFirstCheck) = 0;
+	virtual void ResetComboEnd() = 0;
 };

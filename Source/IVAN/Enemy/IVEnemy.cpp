@@ -175,6 +175,10 @@ void AIVEnemy::AttackEnd(bool bIsFirstCheck)
 	}
 }
 
+void AIVEnemy::ResetComboEnd()
+{
+}
+
 void AIVEnemy::EquipByClass(TSubclassOf<AIVItemBase> Item) const
 {
 

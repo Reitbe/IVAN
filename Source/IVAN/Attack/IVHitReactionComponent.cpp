@@ -3,6 +3,9 @@
 
 #include "IVHitReactionComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "IVAN/Interface/IIVHitReactionInterface.h"
 
@@ -25,6 +28,12 @@ void UIVHitReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 // AActor의 TakeDamage 정보를 그대로 가져와서 사용
 bool UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	// 피격 이펙트 재생
+	PlayHitEffect(DamageCauser->GetActorLocation(), DamageCauser->GetActorForwardVector());
+
+	// 피격 사운드 재생
+	PlayHitSound(DamageCauser->GetActorLocation());
+
 	if (!bIsUsingHitReaction || !GetOwner()) return false; // 피격 리액션 사용 여부 및 컴포넌트 연결 확인
 
 	AActor* Owner = GetOwner(); // 피격 대상
@@ -66,6 +75,7 @@ bool UIVHitReactionComponent::ComputeHitAngle(float Damage, FDamageEvent const& 
 	{
 		PlayHitReactionMontage(Angle);
 	}
+
 	return true;
 }
 
@@ -125,5 +135,22 @@ void UIVHitReactionComponent::PlayDeathMontage()
 			}
 		});
 	AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, DeathMontage);
+}
+
+void UIVHitReactionComponent::PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal)
+{
+	if (HitEffect)
+	{
+		FRotator ImpactRotation = UKismetMathLibrary::MakeRotFromZ(HitNormal);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, HitLocation, ImpactRotation);
+	}
+}
+
+void UIVHitReactionComponent::PlayHitSound(FVector HitLocation)
+{
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, HitLocation);
+	}
 }
 

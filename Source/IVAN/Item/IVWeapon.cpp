@@ -5,7 +5,10 @@
 #include "IVAN/IVGenericStructs.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AIVWeapon::AIVWeapon()
 {
@@ -45,10 +48,30 @@ void AIVWeapon::DropWeapon()
 	WeaponMesh->SetSimulatePhysics(true);
 }
 
+void AIVWeapon::PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal)
+{
+	if (HitEffect)
+	{
+		FRotator ImpactRotation = UKismetMathLibrary::MakeRotFromZ(HitNormal);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, HitLocation, ImpactRotation);
+	}
+}
+
+void AIVWeapon::PlayHitSound(FVector HitLocation)
+{
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, HitLocation);
+	}
+}
+
 void AIVWeapon::SetOwnerController(AController* NewOwnerController)
 {
-	OwnerController = NewOwnerController;
-	SetOwner(NewOwnerController->GetPawn());
+	if (NewOwnerController)
+	{
+		OwnerController = NewOwnerController;
+		SetOwner(NewOwnerController->GetPawn());
+	}
 }
 
 void AIVWeapon::SetOwnerDamageStat(FBaseDamageStat NewDamageStat)
@@ -102,6 +125,7 @@ void AIVWeapon::HitDetection()
 			{
 				if (!HitActors.Contains(HitResult.GetActor()) && HitResult.GetActor() != Owner)
 				{
+					// 데미지 적용
 					UGameplayStatics::ApplyPointDamage(
 						HitResult.GetActor(),
 						TotalDamage,
@@ -111,19 +135,25 @@ void AIVWeapon::HitDetection()
 						this,
 						UDamageType::StaticClass());
 					HitActors.Add(HitResult.GetActor());
+
+					// 이펙트 재생
+					PlayHitEffect(HitResult.ImpactPoint, HitResult.ImpactNormal);
+
+					// 사운드 재생
+					PlayHitSound(HitResult.ImpactPoint);
 				}
 			}
 		}
 
-		// 궤적 확인용 디버그 콜라이더 생성
-		DrawDebugCapsule(
-			GetWorld(),
-			Start,
-			CollisionShape.GetCapsuleHalfHeight(),
-			CollisionShape.GetCapsuleRadius(),
-			Rotation, FColor::Red,
-			false,
-			1.0f);
+		//// 궤적 확인용 디버그 콜라이더 생성
+		//DrawDebugCapsule(
+		//	GetWorld(),
+		//	Start,
+		//	CollisionShape.GetCapsuleHalfHeight(),
+		//	CollisionShape.GetCapsuleRadius(),
+		//	Rotation, FColor::Red,
+		//	false,
+		//	1.0f);
 	}
 }
 

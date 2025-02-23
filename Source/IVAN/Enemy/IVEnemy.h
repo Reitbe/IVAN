@@ -118,6 +118,7 @@ public:
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
 	virtual void AttackEnd(bool bIsFirstCheck) override;
+	virtual void ResetComboEnd() override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
 	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;

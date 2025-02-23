@@ -2,6 +2,7 @@
 
 
 #include "IVPlayerCharacter.h"
+#include "MotionWarpingComponent.h" 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -38,6 +39,9 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	// 모션 매칭용 추적 컴포넌트
 	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("CharacterTrajectoryComponent"));
 
+	// 모션 워핑
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
 	// 스탯 컴포넌트 추가
 	CharacterStatComponent = CreateDefaultSubobject<UIVCharacterStatComponent>(TEXT("CharacterStatComponent"));
 
@@ -54,7 +58,8 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
 
-	LockOnDistance = 1000.0f;
+	LockOnDistance = 1300.0f;
+	bInComboAttack = false;
 }
 
 // 입력 관련 에셋들은 생성자에서 초기화 및 로드
@@ -376,7 +381,8 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 		// 타겟팅 시 회전 방향 설정
 		if (CharacterStatComponent && CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting)
 		{
-			GetCharacterMovement()->bOrientRotationToMovement = false; // 자동 회전 방지
+			// 동작이 어색해서 임시 주석 처리
+			//if (bInComboAttack) return; // 공격 재생중이면 회전 설정 X
 
 			// 현재 이동중인 방향으로 캐릭터 회전
 			FVector MoveDirection = GetVelocity();
@@ -386,17 +392,11 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 			{
 				// 해당 방향으로 보간하여 부드럽게 회전
 				FRotator TargetRotation = UKismetMathLibrary::MakeRotFromX(MoveDirection);
-				FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 10.0f);
+				FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 5.0f);
 				SetActorRotation(NewRotation);
 
 			}
 		}
-		// 논타겟팅시 움직이는 방향 따라 회전
-		else
-		{
-			GetCharacterMovement()->bOrientRotationToMovement = true; // 자동 회전 방지
-		}
-
 	}
 }
 
@@ -464,6 +464,8 @@ void AIVPlayerCharacter::BasicAttack(const FInputActionValue& Value)
 		BaseDamageStat = CharacterStatComponent->GetBaseDamageStat();
 	}
 
+	bInComboAttack = true;
+
 	// 가져온 캐릭터의 데미지 정보를 공격 컴포넌트에 전달한다
 	if(AttackComponent)
 	{
@@ -477,7 +479,6 @@ void AIVPlayerCharacter::LockOnSwitch()
 	{
 		if (CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::NonTargeting) // 락오프 -> 락온
 		{
-			CharacterStatComponent->SetCharacterTargetingState(ETargetingState::OnTargeting);
 			LockOn();
 		}
 		else // 락온 -> 락오프																
@@ -532,6 +533,9 @@ void AIVPlayerCharacter::LockOn()
 		// 실질 락온 작업
 		if (ClosestActor)
 		{
+			// 실제로 대상이 있어야 타겟팅 모드로 돌입
+			CharacterStatComponent->SetCharacterTargetingState(ETargetingState::OnTargeting);
+
 			// 플레이어 입력 및 거리에 따른 종료 조건 제어
 			LockOnActor = ClosestActor;
 			GetController()->SetIgnoreLookInput(true); // 락온 중 시점 입력 무시
@@ -542,6 +546,15 @@ void AIVPlayerCharacter::LockOn()
 			{
 				PlayerController->ShowTargetMarker(ClosestActor);
 			}
+
+			// 모션 워핑 대상으로 지정
+			if (MotionWarpingComponent)
+			{
+				MotionWarpingComponent->AddOrUpdateWarpTargetFromTransform(FName("Target"), ClosestActor->GetActorTransform());
+			}
+
+			// 회전제어
+			GetCharacterMovement()->bOrientRotationToMovement = false; // 자동 회전 방지
 		}
 	}
 }
@@ -557,6 +570,15 @@ void AIVPlayerCharacter::LockOff()
 	{
 		PlayerController->HideTargetMarker();
 	}
+
+	// 모션 워핑 대상 해제
+	if (MotionWarpingComponent)
+	{
+		MotionWarpingComponent->RemoveWarpTarget(FName("Target"));
+	}
+
+	// 회전 제어
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 자동 회전 
 }
 
 bool AIVPlayerCharacter::IsTargetVisibleByLineTrace(AActor* Target)
@@ -614,11 +636,12 @@ void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 		{
 			CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
 			bAttackEndChecked = true;
+			// 다음 공격 입력은 가능하지만, 아직 몽타주 전체가 끝난 것은 아니므로 움직임 불가.
 		}
 		// 2회차 검사는 1회차 검사 여부와 관계 없이 항상 진행
 		else
 		{
-			// 1회차를 패스하고 2회차 검사를 진행하는 경우
+			// 1회차를 패스하고 2회차 검사를 진행하는 경우(몽타주 종료 노티파이 호출되지 않은 경우)
 			if (!bAttackEndChecked)
 			{
 				CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
@@ -632,6 +655,11 @@ void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 	{
 		AttackComponent->AttackEnd();
 	}
+}
+
+void AIVPlayerCharacter::ResetComboEnd()
+{
+	bInComboAttack = false;
 }
 
 void AIVPlayerCharacter::SetDead()

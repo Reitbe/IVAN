@@ -10,6 +10,7 @@
 
 class UCapsuleComponent;
 class UParticleSystem;
+class USoundCue;
 class UStaticMesh;
 
 /**
@@ -61,9 +62,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
 	TArray<TObjectPtr<UAnimMontage>> WeaponChangeMontage;
 
-	/* 충돌 이펙트 목록*/
+	/* 충돌 이펙트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
-	TArray<TObjectPtr<UParticleSystem>> HitEffects;
+	TObjectPtr<UParticleSystem> HitEffect;
+
+	/* 충돌 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	TObjectPtr<USoundCue> HitSound;
 
 	/* 무기의 최대 가능 콤보 수 -> 콤보 몽타주 수로 결정 */
 	int32 MaxComboCount;
@@ -92,6 +97,15 @@ protected:
 	float TotalDamage;
 
 	
+// 파티클 및 사운드 
+protected:
+	/* 충돌 이펙트 재생 */
+	void PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal);
+
+	/* 충돌 사운드 재생 */
+	void PlayHitSound(FVector HitLocation);
+
+
 // IIIVWeaponInterface 인터페이스 - AttackComponent 연결용 
 public:
 	virtual void SetOwnerController(AController* NewOwnerController) override;
