@@ -8,6 +8,8 @@
 
 class AIVPlayerCharacter;
 class AIVBossEnemy;
+class USoundCue;
+class UAudioComponent;
 
 /**
  * 보스룸 관리용 박스. 	
@@ -33,6 +35,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ActorInfo")
 	TSoftObjectPtr<AIVBossEnemy> BossEnemy;
 
+protected:
+	/* 전투중 플레이어 사망 시 */
+	void OnPlayerDeath();
+
+	/* 보스몬스터 처치 시 */
+	void OnBossDeath(AActor* DeadMonster);
+
+
+// 사운드
+protected:
+	/* 전투 BGM */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> BossBattleBGM;
+
+	/* 전투 중지 혹은 완료 시 재생 중단을 위한 오디오 컴포넌트*/
+	TObjectPtr<UAudioComponent> BossBattleBGMAudioComponent;
+
+
+private:
+	void StopBattleBGM();
 
 // 콜라이더 관련
 protected:

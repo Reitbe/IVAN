@@ -7,7 +7,8 @@
 #include "IVHitReactionComponent.generated.h"
 
 class UAnimInstance;
-
+class UParticleSystem;
+class USoundCue;
 /*
 * 오너의 피격 리액션을 담당하는 컴포넌트
 * 방향에 따른 피격 애니메이션, 래그돌 유무 등을 관리한다.
@@ -71,6 +72,24 @@ public:
 // 사망 리액션 몽타주
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death Reaction")
 	TObjectPtr<UAnimMontage> DeathMontage;
+
+
+// 파티클 및 사운드 
+public:
+	/* 충돌 이펙트 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	TObjectPtr<UParticleSystem> HitEffect;
+
+	/* 충돌 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
+	TObjectPtr<USoundCue> HitSound;
+
+protected:
+	/* 충돌 이펙트 재생 */
+	void PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal);
+
+	/* 충돌 사운드 재생 */
+	void PlayHitSound(FVector HitLocation);
 
 
 // 설정 관련 변수

@@ -25,6 +25,7 @@ class UCharacterTrajectoryComponent;
 class UIVCharacterStatComponent;
 class UIVHitReactionComponent;
 class UIVAttackComponent;
+class UMotionWarpingComponent;
 
 /**
  * 인게임 플레이어 캐릭터 클래스
@@ -97,6 +98,12 @@ protected:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 
+// 모션 워핑
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Motion Warping")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+
 // 락온(타겟팅)
 protected:
 	void LockOn();	// 락온
@@ -133,6 +140,7 @@ protected:
 	/* 공격 */
 	void BasicAttack(const FInputActionValue& Value);	// 기본 공격
 	uint8 bAttackEndChecked : 1;						// 공격 종료 체크는 1~2번 처리된다. 회차 표시용.
+	uint8 bInComboAttack : 1;							// 공격 몽타주 종료 체크
 
 	/* 락온 */
 	void LockOnSwitch(); // 락온 전환
@@ -209,6 +217,7 @@ public:
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
 	virtual void AttackEnd(bool bIsFirstCheck) override;
+	virtual void ResetComboEnd() override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
 	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;

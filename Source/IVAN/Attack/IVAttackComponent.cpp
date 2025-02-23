@@ -15,7 +15,7 @@ UIVAttackComponent::UIVAttackComponent()
 
 	MaxComboCount = 1;
 	ComboCount = 0;
-	ComboResetTime = 1.0f;
+	ComboResetTime = 2.0f;
 }
 
 void UIVAttackComponent::BeginPlay()
@@ -77,8 +77,8 @@ void UIVAttackComponent::Attack(FBaseDamageStat DamageStat)
 				AnimInstance->Montage_Play(ComboMontage); 
 				
 				// 공격 도중 피격	상태로 전환되는 경우를 위한 대리자
-				FOnMontageBlendingOutStarted BlendingOutDelegate;
-				BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+				FOnMontageEnded MontageEndDelegate;
+				MontageEndDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
 					{
 						IIIVAttackEndInterface* AttackEndInterface = Cast<IIIVAttackEndInterface>(GetOwner());
 						if (AttackEndInterface)
@@ -86,7 +86,7 @@ void UIVAttackComponent::Attack(FBaseDamageStat DamageStat)
 							AttackEndInterface->AttackEnd(false); // 2차 검사이므로 False 전달
 						}
 					});
-				AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, ComboMontage);
+				AnimInstance->Montage_SetEndDelegate(MontageEndDelegate, ComboMontage);
 			}
 			ComboCount = (ComboCount < MaxComboCount - 1) ? ComboCount + 1 : 0; // 콤보 카운트 증가
 		}
@@ -103,5 +103,10 @@ void UIVAttackComponent::AttackEnd()
 void UIVAttackComponent::ResetCombo()
 {
 	ComboCount = 0;
+	IIIVAttackEndInterface* AttackEndInterface = Cast<IIIVAttackEndInterface>(GetOwner());
+	if (AttackEndInterface)
+	{
+		AttackEndInterface->ResetComboEnd(); // 1차 검사이므로 True 전달
+	}
 }
 

@@ -2,6 +2,9 @@
 
 
 #include "IVSimpleStatHUD.h"
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/GameplayStatics.h"
 #include "IVAN/Enemy/IVBossEnemy.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
@@ -149,6 +152,12 @@ void AIVSimpleStatHUD::OnPlayerDeath()
 	{
 		DeathWidget->SetVisibility(ESlateVisibility::Visible);
 	}
+
+	// 사망 사운드 재생 - 부활 시 종료를 위한 SpawnSound2D 및 컴포넌트 저장
+	if (PlayerDeathWidgetSound)
+	{
+		PlayerDeathAudioComponent = UGameplayStatics::SpawnSound2D(this, PlayerDeathWidgetSound);
+	}
 }
 
 void AIVSimpleStatHUD::OnPlayerAlive()
@@ -163,6 +172,12 @@ void AIVSimpleStatHUD::OnPlayerAlive()
 	if (DeathWidget)
 	{
 		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 사망 사운드 중지
+	if (PlayerDeathWidgetSound)
+	{
+		PlayerDeathAudioComponent->Stop();
 	}
 }
 
@@ -205,7 +220,13 @@ void AIVSimpleStatHUD::OnBossDeath(AActor* DeadMonster)
 					{
 						BossClearWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
-				}), 3.0f, false);
+				}), 5.0f, false);
+		}
+
+		// 보스 클리어 사운드 재생 - 중간 종료 없으니 PlaySound2D 사용
+		if (BossClearWidgetSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), BossClearWidgetSound);
 		}
 	}
 }

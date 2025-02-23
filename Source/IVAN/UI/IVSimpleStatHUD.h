@@ -11,6 +11,8 @@ class UIVSimpleBossStatWidget;
 class UIVCharacterStatComponent;
 class UIVMonsterStatComponent;
 class AIVBossEnemy;
+class USoundCue;
+class UAudioComponent;
 
 /**
  * 플레이어에게 필요한 HUD 정보 관리
@@ -80,6 +82,22 @@ protected:
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> TargetMarkerWidgetClass;
 	TObjectPtr<UUserWidget> TargetMarkerWidget;
+
+
+// 사운드
+protected:
+	/* 사망 위젯 등장 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TObjectPtr<USoundCue> PlayerDeathWidgetSound;
+
+	/* 보스 클리어 위젯 등장 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TObjectPtr<USoundCue> BossClearWidgetSound;
+
+	/* 부활시 사망 사운드 중단을 위한 오디오 컴포넌트*/
+	TObjectPtr<UAudioComponent> PlayerDeathAudioComponent;
+
+
 
 
 // 위젯 애니메이션
