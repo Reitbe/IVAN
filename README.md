@@ -167,5 +167,5 @@
 <br>
 
 
-## 🕹️ 인게임 화면
+## 🕹️ 인게임 영상
 [![포트폴리오 영상](/ReadMeSource/youtube.png)](https://www.youtube.com/watch?v=xWUeNQMD1T8&t=69s&ab_channel=Whale_log)
