@@ -22,6 +22,9 @@
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 #include "IVAN/GameSystem/IVANGameMode.h"
 #include "IVAN/Item/IVWeapon.h"
+#include "IVAN/Item/IVInventoryComponent.h"
+#include "IVAN/Item/IVInteractionComponent.h"
+#include "IVAN/Animation/IVPlayerAnim.h"
 
 AIVPlayerCharacter::AIVPlayerCharacter()
 {
@@ -30,11 +33,14 @@ AIVPlayerCharacter::AIVPlayerCharacter()
 	// 입력 관련 에셋들 로드 및 초기화
 	InputConstructHelper();
 
-	// 몽타주 관련 에셋들 로드 및 초기화
-	MontageConstructHelper();
-
 	// 장비 관리용 컴포넌트
 	EquipComponent = CreateDefaultSubobject<UIVEquipComponent>(TEXT("EquipComponent"));
+
+	// 인벤토리 컴포넌트
+	InventoryComponent = CreateDefaultSubobject<UIVInventoryComponent>(TEXT("InventoryComponent"));
+
+	// 상호작용 컴포넌트
+	InteractionComponent = CreateDefaultSubobject<UIVInteractionComponent>(TEXT("InteractionComponent"));
 
 	// 모션 매칭용 추적 컴포넌트
 	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("CharacterTrajectoryComponent"));
@@ -79,13 +85,6 @@ void AIVPlayerCharacter::InputConstructHelper()
 		BasicAttackAction = BasicAttackActionFinder.Object;
 	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> SpecialAttackFinder
-	//(TEXT(""));
-	//if (SpecialAttackFinder.Succeeded())
-	//{
-	//	SpecialAttack = SpecialAttackFinder.Object;
-	//}
-
 	static ConstructorHelpers::FObjectFinder<UInputAction> BasicMovementFinder
 	(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
 	if (BasicMovementFinder.Succeeded())
@@ -128,19 +127,12 @@ void AIVPlayerCharacter::InputConstructHelper()
 		TargetAction = TargetActionFinder.Object;
 	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionFinder
-	//(TEXT(""));
-	//if (InteractActionFinder.Succeeded())
-	//{
-	//	InteractAction = InteractActionFinder.Object;
-	//}
-
-	//static ConstructorHelpers::FObjectFinder<UInputAction> DefendActionFinder
-	//(TEXT(""));
-	//if (DefendActionFinder.Succeeded())
-	//{
-	//	DefendAction = DefendActionFinder.Object;
-	//}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionFinder
+	(TEXT("/Game/Input/Actions/IA_Interaction.IA_Interaction"));
+	if (InteractActionFinder.Succeeded())
+	{
+		InteractAction = InteractActionFinder.Object;
+	}
 
 	//static ConstructorHelpers::FObjectFinder<UInputAction> UseFirstItemSlotFinder
 	//(TEXT(""));
@@ -169,30 +161,6 @@ void AIVPlayerCharacter::InputConstructHelper()
 	//{
 	//	UseFourthItemSlot = UseFourthItemSlotFinder.Object;
 	//}
-}
-
-void AIVPlayerCharacter::MontageConstructHelper()
-{
-	/*
-	* 애님 인스턴스는 Blueprint에서 연결한다. 관련된 에셋들이 많기 때문이다.
-	* 몽타주는 별도로 BeginPlay에서 로드한다.
-	*/
-
-	RollMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
-		TEXT("/Game/Animation/Retarget/Roll/Roll_Edit_Montage.Roll_Edit_Montage"))
-	);
-
-	DodgeRightMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
-		TEXT(""))
-	);
-
-	DodgeLeftMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
-		TEXT(""))
-	);
-
-	DodgeBackMontage = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(
-		TEXT(""))
-	);
 }
 
 void AIVPlayerCharacter::EquipByClass(TSubclassOf<AIVItemBase> Item) const
@@ -278,7 +246,6 @@ void AIVPlayerCharacter::BeginPlay()
 
 	// 애님 인스턴스 설정
 	AnimInstance = GetMesh()->GetAnimInstance();
-	RollMontage.LoadSynchronous();
 
 	// 공격 및 피격 시스템에 애님 인스턴스 설정
 	if (AnimInstance)
@@ -355,6 +322,9 @@ void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 공격
 		Input->BindAction(BasicAttackAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::BasicAttack);
+
+		// 상호작용
+		Input->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::Interact);
 	}
 }
 
@@ -378,23 +348,27 @@ void AIVPlayerCharacter::BasicMove(const FInputActionValue& Value)
 		AddMovementInput(FowardDirection, FowardValue);
 		AddMovementInput(SideDirection, SideValue);
 
+		// 구르기용 방향 정보 설정
+		MoveDirection = (FowardDirection * FowardValue) + (SideDirection * SideValue);
+		MoveDirection = MoveDirection.GetSafeNormal();
+
 		// 타겟팅 시 회전 방향 설정
 		if (CharacterStatComponent && CharacterStatComponent->GetCharacterTargetingState() == ETargetingState::OnTargeting)
 		{
-			// 동작이 어색해서 임시 주석 처리
-			//if (bInComboAttack) return; // 공격 재생중이면 회전 설정 X
+			// 이미 컨트롤러 회전을 그대로 사용중이면 진행 X
+			if (bUseControllerRotationYaw) return;
 
-			// 현재 이동중인 방향으로 캐릭터 회전
-			FVector MoveDirection = GetVelocity();
-			MoveDirection.Z = 0.0f;
+			// 캐릭터 방향을 컨트롤러 방향에 맞춰 회전
+			float ControllerYaw = Rotation.Yaw;
+			float CharacterYaw = GetActorRotation().Yaw;
+			float InterpYaw = FMath::FInterpTo(CharacterYaw, ControllerYaw, GetWorld()->GetDeltaSeconds(), 5.0f);
+			SetActorRotation(FRotator(0.0f, InterpYaw, 0.0f));
 
-			if (!MoveDirection.IsNearlyZero())
+			// 회전이 어느 정도 동일해지면 컨트롤러 회전 사용 시작
+			float DeltaYaw = FMath::Abs(FMath::FindDeltaAngleDegrees(CharacterYaw, ControllerYaw));
+			if (DeltaYaw < 10.0f)
 			{
-				// 해당 방향으로 보간하여 부드럽게 회전
-				FRotator TargetRotation = UKismetMathLibrary::MakeRotFromX(MoveDirection);
-				FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 5.0f);
-				SetActorRotation(NewRotation);
-
+				bUseControllerRotationYaw = true;
 			}
 		}
 	}
@@ -410,15 +384,46 @@ void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 	{
 		if (AnimInstance && CharacterStatComponent)
 		{
-			AnimInstance->Montage_Play(RollMontage.Get());
-			CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::Rolling); // 구르기 시작할 때 상태 변경
+			// 입력 방향과 캐릭터 방향을 기준으로 어느 구르기 동작이 적합한지 판단
+			FVector CharForward = GetActorForwardVector();
+			FVector CharRight = GetActorRightVector();
 
+			float FowardDot = FVector::DotProduct(CharForward, MoveDirection);
+			float RightDot = FVector::DotProduct(CharRight, MoveDirection);
+
+			float RollX = FMath::Clamp(FowardDot, -1.0f, 1.0f); // 이미 -1 ~ 1 사이 값이지만 혹시 모르니 한번 더 클램핑
+			float RollY = FMath::Clamp(RightDot, -1.0f, 1.0f);
+
+			// 방향 별 구르기 몽타주 선택
+			UAnimMontage* SelectedRollMontage = nullptr;
+			if (RollX >= 0.5)
+			{
+				SelectedRollMontage = RollFrontMontage;
+			}
+			else if (RollX <= -0.5)
+			{
+				SelectedRollMontage = RollBackMontage;
+			}
+			else if (RollY > 0.0)
+			{
+				SelectedRollMontage = RollRightMontage;
+			}
+			else if (RollY < 0.0)
+			{
+				SelectedRollMontage = RollLeftMontage;
+			}
+
+			// 구르기 몽타주 재생
+			AnimInstance->Montage_Play(SelectedRollMontage);
+
+			// 구르기 시작 및 종료 시 상태 변경
+			CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::Rolling); // 구르기 시작할 때 상태 변경
 			FOnMontageBlendingOutStarted BlendingOutDelegate;
 			BlendingOutDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
 				{
 					CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None); // 구르기 끝날 때 상태 변경
 				});
-			AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, RollMontage.Get());
+			AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutDelegate, SelectedRollMontage);
 		}
 	}
 }
@@ -489,6 +494,14 @@ void AIVPlayerCharacter::LockOnSwitch()
 	}
 }
 
+void AIVPlayerCharacter::Interact()
+{
+	if (InteractionComponent)
+	{
+		InteractionComponent->SearchAndInteract();
+	}
+}
+
 void AIVPlayerCharacter::LockOn()
 {
 	// 락온 대상 탐색을 위한 콜리전 설정
@@ -555,6 +568,9 @@ void AIVPlayerCharacter::LockOn()
 
 			// 회전제어
 			GetCharacterMovement()->bOrientRotationToMovement = false; // 자동 회전 방지
+
+			// 타겟팅 시 갑작스러운 캐릭터 회전을 방지하기 위해 조금 회전한 후 컨트롤러 회전 사용
+			//bUseControllerRotationYaw = true;
 		}
 	}
 }
@@ -579,6 +595,7 @@ void AIVPlayerCharacter::LockOff()
 
 	// 회전 제어
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 자동 회전 
+	bUseControllerRotationYaw = false;
 }
 
 bool AIVPlayerCharacter::IsTargetVisibleByLineTrace(AActor* Target)

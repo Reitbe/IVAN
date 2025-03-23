@@ -14,6 +14,7 @@
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
 #include "IVAN/Interface/IIVLockOnTargetMarker.h"
 #include "IVAN/Interface/IIVAIUIControl.h"
+#include "IVAN/IVGenericStructs.h"
 #include "IVEnemy.generated.h"
 
 class UIVAttackRange;

@@ -9,11 +9,15 @@
 #include "IVAN/Enemy/IVBossEnemy.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
+#include "IVAN/Interface/IIVInventoryComponentProvider.h"
 #include "IVAN/UI/IVBaseStatBar.h"
 #include "IVAN/UI/IVSimpleStatWidget.h"
 #include "IVAN/UI/IVSimpleBossStatWidget.h"
+#include "IVAN/UI/IVInventoryBaseWidget.h"
+#include "IVAN/UI/IVInventoryWidget.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Stat/IVMonsterStatComponent.h"
+#include "IVAN/Item/IVInventoryComponent.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 
 AIVSimpleStatHUD::AIVSimpleStatHUD()
@@ -60,6 +64,22 @@ AIVSimpleStatHUD::AIVSimpleStatHUD()
 		TargetMarkerWidgetClass = TargetMarkerWidgetClassFinder.Class;
 	}
 
+	// 인벤토리 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UIVInventoryBaseWidget> InventoryWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_InventoryBase.WBP_InventoryBase_C"));
+	if (InventoryWidgetClassFinder.Class)
+	{
+		InventoryBaseWidgetClass = InventoryWidgetClassFinder.Class;
+	}
+
+	// 메뉴 위젯 클래스
+	//static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder
+	//(TEXT("/Game/Widget/WBP_Menu.WBP_Menu_C"));
+	//if (MenuWidgetClassFinder.Class)
+	//{
+	//	MenuWidgetClass = MenuWidgetClassFinder.Class;
+	//}
+
 }
 
 void AIVSimpleStatHUD::BeginPlay()
@@ -105,6 +125,22 @@ void AIVSimpleStatHUD::BeginPlay()
 		TargetMarkerWidget->AddToViewport(0); // 가장 뒤에 배치
 		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	// 인벤토리 위젯 생성
+	if (InventoryBaseWidgetClass)
+	{
+		InventoryBaseWidget = CreateWidget<UIVInventoryBaseWidget>(GetWorld(), InventoryBaseWidgetClass);
+		InventoryBaseWidget->AddToViewport(5); // 앞에 배치
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 메뉴 위젯 생성 -> 아직 안만듬
+	if (MenuWidgetClass)
+	{
+		MenuWidget = CreateWidget<UUserWidget>(GetWorld(), MenuWidgetClass);
+		MenuWidget->AddToViewport(6); // 앞에 배치
+		MenuWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
 	
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (GameInstance)
@@ -118,6 +154,25 @@ void AIVSimpleStatHUD::BeginPlay()
 			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindPlayerStatWidget);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnBossDeath);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnTargetDeath);
+		}
+	}
+
+	// 인벤토리 위젯 바인딩
+	APawn* PlayerPawn = GetOwningPawn();
+	if (PlayerPawn && PlayerPawn->Implements<UIIVInventoryComponentProvider>())
+	{
+		if (IIIVInventoryComponentProvider* Provider = Cast<IIIVInventoryComponentProvider>(PlayerPawn))
+		{
+			if (UIVInventoryComponent* InventoryComponent = Provider->GetInventoryComponent())
+			{
+				// 인벤토리 Base 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
+				if (InventoryBaseWidget)
+				{
+					InventoryBaseWidget->InventoryWidget->InventoryComponent = InventoryComponent;
+					InventoryBaseWidget->InventoryWidget->InitializeInventorySlots();
+					InventoryComponent->OnInventorySlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateInventory);
+				}
+			}
 		}
 	}
 }
@@ -299,4 +354,28 @@ void AIVSimpleStatHUD::HideTargetMarker()
 	{
 		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void AIVSimpleStatHUD::ShowInventory()
+{
+	if (InventoryBaseWidget)
+	{
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AIVSimpleStatHUD::HideInventory()
+{
+	if (InventoryBaseWidget)
+	{
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AIVSimpleStatHUD::ShowMenu()
+{
+}
+
+void AIVSimpleStatHUD::HideMenu()
+{
 }

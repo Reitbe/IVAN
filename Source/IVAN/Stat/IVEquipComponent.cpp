@@ -50,7 +50,7 @@ void UIVEquipComponent::UnequipWeapon()
 	if (WeaponInstance)
 	{
 		WeaponInstance->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		WeaponInstance->DropWeapon();
+		WeaponInstance->DropItem();
 	}
 }
 

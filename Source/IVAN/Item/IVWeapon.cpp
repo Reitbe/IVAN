@@ -12,13 +12,6 @@
 
 AIVWeapon::AIVWeapon()
 {
-	ItemType = EItemType::Weapon;
-
-	// 무기 외형 스테틱 메시
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetRootComponent(WeaponMesh);
-
 	// 데미지 스탯 초기화
 	TotalDamage = 0.0f;
 	MaxComboCount = 0;
@@ -38,14 +31,6 @@ void AIVWeapon::PostInitializeComponents()
 void AIVWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-void AIVWeapon::DropWeapon()
-{
-	// 소유자와 독립적으로 월드에 존재하기 위하여 물리 시뮬레이션 활성화
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	WeaponMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	WeaponMesh->SetSimulatePhysics(true);
 }
 
 void AIVWeapon::PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal)
@@ -79,8 +64,9 @@ void AIVWeapon::SetOwnerDamageStat(FBaseDamageStat NewDamageStat)
 	OwnerDamageStat = NewDamageStat;
 
 	// 최종 데미지 = 무기 소유자 기본&추가 데미지 + 무기의 기본&추가 데미지
-	TotalDamage = OwnerDamageStat.BaseDamage + OwnerDamageStat.AdditionalDamage
-		+ DamageStat.BaseDamage + DamageStat.AdditionalDamage;
+	float CharacterDamage = OwnerDamageStat.BaseDamage + OwnerDamageStat.AdditionalDamage;
+	float WeaponDamage = ItemInfo.ItemDamageStat.BaseDamage + ItemInfo.ItemDamageStat.AdditionalDamage;
+	TotalDamage = CharacterDamage + WeaponDamage;
 }
 
 void AIVWeapon::SetOwnerAttackRanges(const TArray<UIVAttackRange*>& AttackRanges)
