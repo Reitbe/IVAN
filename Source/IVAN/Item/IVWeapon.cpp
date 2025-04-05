@@ -33,6 +33,16 @@ void AIVWeapon::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AIVWeapon::ApplyEquipSettings()
+{
+	ItemMeshComponent->SetSimulatePhysics(false);
+	ItemMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ItemMeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
+
+	HideInteractionUI();
+	SetInteractable(false);
+}
+
 void AIVWeapon::PlayHitEffect(FVector HitLocation, FVector_NetQuantizeNormal HitNormal)
 {
 	if (HitEffect)
@@ -93,7 +103,7 @@ void AIVWeapon::HitDetection()
 		FVector Start = HitCollider->GetComponentLocation(); // 종료 지점 동일
 		FQuat Rotation = HitCollider->GetComponentQuat();
 		FCollisionShape CollisionShape = HitCollider->GetCollisionShape();
-		FCollisionQueryParams CollisionParams;
+		FCollisionQueryParams CollisionParams = FCollisionQueryParams::DefaultQueryParam;
 		CollisionParams.AddIgnoredActor(this);
 
 		// Trace 진행

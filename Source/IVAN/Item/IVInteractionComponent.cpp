@@ -43,11 +43,13 @@ void UIVInteractionComponent::SearchAndInteract()
 		for (const FHitResult& HitResult : HitResults)
 		{
 			AActor* HitActor = HitResult.GetActor();
-			if (HitActor && HitActor->Implements<UIIVInteractableInterface>()) // 상호작용 대상 조건 확인
+			if (HitActor && HitActor->Implements<UIIVInteractableInterface>()) // 상호작용 인터페이스를 구현하는가?
 			{
-				if (IsTargetInteractable(HitActor)) // 시야에 있는지 확인
+				IIIVInteractableInterface* InteractableActor = Cast<IIIVInteractableInterface>(HitActor);
+
+				if (InteractableActor->IsInteractable() && IsTargetInteractable(HitActor)) // 상호작용이 가능한가?
 				{
-					float Distance = FVector::Distance(Start, HitActor->GetActorLocation());
+					float Distance = FVector::Distance(Start, HitActor->GetActorLocation()); 
 					if (Distance < ClosestDistance)
 					{
 						ClosestDistance = Distance;

@@ -33,16 +33,20 @@ protected:
 
 // 아이템 세부사항
 public:
-	/* 아이템 타입 반환 */
-	EItemType GetItemType() const { return ItemInfo.ItemType; }
+	/* 레벨에 아이템을 배치하는지 여부 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	uint8 bIsPlacedInWorld : 1;
 
-	/* 데이터베이스에서 가져온 아이템 세부 정보 */
+	/* 데이터베이스에서 가져온 아이템 세부 정보 - BP에서도 ID만큼은 제대로 작성해야한다.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FItemBaseInfo ItemInfo;
 
 	/* 아이템 메쉬 컴포넌트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	TObjectPtr<UStaticMeshComponent> ItemMeshComponent;
+
+	/* 위치 종합용 씬 컴포넌트 */
+	TObjectPtr<USceneComponent> SceneComponent;
 
 
 // 아이템 상호작용
@@ -75,8 +79,8 @@ public:
 
 // 아이템 공통 동작
 public:
-	/* 특정 아이템 정보로 공용 아이템 액터를 초기화 */
-	void InitializeItem(const FItemBaseInfo& InItemInfo);
+	/* 특정 아이템 정보로 액터를 초기화 */
+	void InitializeItem(const FItemBaseInfo& InItemInfo, int32 ItemCount);
 
 	/* 아이템을 레벨 내 액터로 스폰*/
 	void DropItem();
@@ -87,6 +91,7 @@ public:
 	/* IIIVInteractableInterface 구현 */
 	virtual void Interact(AActor* InteractingActor) override;
 	virtual void SetInteractable(bool bNewInteractable) override;
+	virtual bool IsInteractable() const override { return bIsInteractable; };
 	virtual void ShowInteractionUI() override;
 	virtual void HideInteractionUI() override;
 };

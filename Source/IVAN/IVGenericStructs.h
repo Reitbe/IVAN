@@ -160,6 +160,10 @@ struct FItemBaseInfo
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     TObjectPtr<UStaticMesh> ItemMesh;
 
+    /* 아이템 스켈레탈 메쉬 - 장비용 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	TObjectPtr<USkeletalMesh> ItemSkeletalMesh;
+
     /* 아이템 기본 스탯 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     FBaseStat ItemStat;
@@ -183,13 +187,14 @@ struct FItemBaseInfo
         ItemCount = 0;
         ItemIcon = nullptr;
         ItemMesh = nullptr;
+		ItemSkeletalMesh = nullptr;
         ItemStat = FBaseStat();
         ItemDamageStat = FBaseDamageStat();
 		EquipSocket = NAME_None;
     }
 
     /* 생성자 */
-    FItemBaseInfo(FName InItemID, EItemType InItemType, FString InItemName, FString InItemDescription, bool bInIsStackable, int32 InItemCount, UTexture2D* InItemIcon, UStaticMesh* InItemMesh, FBaseStat InItemStat, FBaseDamageStat InItemDamageStat, FName InEquipSocket)
+    FItemBaseInfo(FName InItemID, EItemType InItemType, FString InItemName, FString InItemDescription, bool bInIsStackable, int32 InItemCount, UTexture2D* InItemIcon, UStaticMesh* InItemMesh, USkeletalMesh InItemSkeletalMesh, FBaseStat InItemStat, FBaseDamageStat InItemDamageStat, FName InEquipSocket)
     {
         ItemID = InItemID;
         ItemType = InItemType;
@@ -199,6 +204,7 @@ struct FItemBaseInfo
         ItemCount = InItemCount;
         ItemIcon = InItemIcon;
         ItemMesh = InItemMesh;
+		ItemSkeletalMesh = InItemSkeletalMesh;
         ItemStat = InItemStat;
         ItemDamageStat = InItemDamageStat;
         EquipSocket = InEquipSocket;

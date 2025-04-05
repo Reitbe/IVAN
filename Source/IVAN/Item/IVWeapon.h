@@ -41,6 +41,10 @@ private:
 	FBaseDamageStat OwnerDamageStat;
 
 
+// 무기 장착
+public:
+	void ApplyEquipSettings();
+
 // 무기 상세 정보
 protected:
 	/* 콤보에 사용될 공격 몽타주 목록 */

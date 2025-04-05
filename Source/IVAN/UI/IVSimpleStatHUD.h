@@ -9,6 +9,7 @@
 class UIVSimpleStatWidget;
 class UIVSimpleBossStatWidget;
 class UIVInventoryBaseWidget;
+class UIVQuickSlotWidget;
 class UIVCharacterStatComponent;
 class UIVMonsterStatComponent;
 class AIVBossEnemy;
@@ -110,6 +111,11 @@ protected:
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> MenuWidgetClass;
 	TObjectPtr<UUserWidget> MenuWidget;
+
+	/* 퀵슬롯 위젯 */ 
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UIVQuickSlotWidget> QuickSlotWidgetClass;
+	TObjectPtr<UIVQuickSlotWidget> QuickSlotWidget;
 
 
 // 사운드

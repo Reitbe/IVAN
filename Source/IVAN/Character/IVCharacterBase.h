@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")
 	TObjectPtr<UIVEquipComponent> EquipComponent;
 
+	/* 장비 메쉬 관리용 배열*/
+	TArray<USkeletalMeshComponent*> EquipMeshes;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularSkin", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> HelmMesh;

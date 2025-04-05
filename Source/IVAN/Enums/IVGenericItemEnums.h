@@ -40,7 +40,9 @@ enum class EInventorySlotType : uint8
 	None            UMETA(DisplayName = "None"),
 	QuickSlot       UMETA(DisplayName = "QuickSlot"),
 	EquipSlot       UMETA(DisplayName = "EquipSlot"),
+	WeaponSlot      UMETA(DisplayName = "WeaponSlot"),
 	InventorySlot   UMETA(DisplayName = "InventorySlot"),
+	MAX				UMETA(Hidden) // 갯수 계산용
 };
 
 class IVAN_API IVGenericItemEnums

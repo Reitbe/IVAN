@@ -28,6 +28,11 @@ protected:
 
 
 // 정보 갱신 관련
+public:
+	void UseConsumableItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat);	// 소비 아이템 사용 처리
+	void EquipItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat);			// 장비 아이템 장착 처리
+	void UnequipItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat);			// 장비 아이템 해제 처리
+
 protected:
 	virtual void SetDead() override;	// 사망 처리
 	virtual void SetAlive() override;	// 부활 처리

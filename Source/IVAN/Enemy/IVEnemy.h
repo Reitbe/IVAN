@@ -119,11 +119,14 @@ public:
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
 	virtual void AttackEnd(bool bIsFirstCheck) override;
+	virtual void AttackCancel() override;
 	virtual void ResetComboEnd() override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
-	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;
-	virtual void EquipByInstance(TObjectPtr<AIVItemBase> Item) const override;
+	virtual UIVEquipComponent* GetEquipComponent() const override { return EquipComponent; }
+	virtual void EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const override;
+	virtual TArray<USkeletalMeshComponent*>& GetEquipMeshArray() override { return EquipMeshes; }
+	virtual void UnEquipWeapon() override;
 
 	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
 	virtual void StartHitReaction() override;

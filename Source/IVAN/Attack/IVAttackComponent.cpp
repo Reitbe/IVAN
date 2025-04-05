@@ -33,6 +33,10 @@ void UIVAttackComponent::SetWeapon(TObjectPtr<AIVWeapon> NewWeapon)
 {
 	// 전달 받은 무기를 현재 무기로 설정
 	WeaponInstance = NewWeapon;
+	if (!WeaponInstance) // 무기 해제 시 WeaponInstance를 nullptr로 설정
+	{
+		return;
+	}
 
 	// 무기 정보 갱신
 	IIIVWeaponInterface* WeaponInterface = Cast<IIIVWeaponInterface>(WeaponInstance);
@@ -63,7 +67,7 @@ void UIVAttackComponent::ProvideOwnerAttackRanges(const TArray<UIVAttackRange*> 
 void UIVAttackComponent::Attack(FBaseDamageStat DamageStat)
 {
 	if (WeaponInstance)
-	{
+	{	
 		IIIVWeaponInterface* WeaponInterface = Cast<IIIVWeaponInterface>(WeaponInstance);
 		if (WeaponInterface)
 		{
@@ -89,6 +93,15 @@ void UIVAttackComponent::Attack(FBaseDamageStat DamageStat)
 				AnimInstance->Montage_SetEndDelegate(MontageEndDelegate, ComboMontage);
 			}
 			ComboCount = (ComboCount < MaxComboCount - 1) ? ComboCount + 1 : 0; // 콤보 카운트 증가
+		}
+	}
+	else
+	{
+		// 공격을 시도했는데 무기가 없어서 공격이 취소된 경우
+		IIIVAttackEndInterface* AttackEndInterface = Cast<IIIVAttackEndInterface>(GetOwner());
+		if (AttackEndInterface)
+		{
+			AttackEndInterface->AttackCancel(); // 공격 취소
 		}
 	}
 	GetWorld()->GetTimerManager().ClearTimer(ComboTimer); // 콤보 타이머 초기화

@@ -134,58 +134,62 @@ void AIVPlayerCharacter::InputConstructHelper()
 		InteractAction = InteractActionFinder.Object;
 	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> UseFirstItemSlotFinder
-	//(TEXT(""));
-	//if (UseFirstItemSlotFinder.Succeeded())
-	//{
-	//	UseFirstItemSlot = UseFirstItemSlotFinder.Object;
-	//}
-
-	//static ConstructorHelpers::FObjectFinder<UInputAction> UseSecondItemSlotFinder
-	//(TEXT(""));
-	//if (UseSecondItemSlotFinder.Succeeded())
-	//{
-	//	UseSecondItemSlot = UseSecondItemSlotFinder.Object;
-	//}
-
-	//static ConstructorHelpers::FObjectFinder<UInputAction> UseThirdItemSlotFinder
-	//(TEXT(""));
-	//if (UseThirdItemSlotFinder.Succeeded())
-	//{
-	//	UseThirdItemSlot = UseThirdItemSlotFinder.Object;
-	//}
-
-	//static ConstructorHelpers::FObjectFinder<UInputAction> UseFourthItemSlotFinder
-	//(TEXT(""));
-	//if (UseFourthItemSlotFinder.Succeeded())
-	//{
-	//	UseFourthItemSlot = UseFourthItemSlotFinder.Object;
-	//}
-}
-
-void AIVPlayerCharacter::EquipByClass(TSubclassOf<AIVItemBase> Item) const
-{
-}
-
-void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
-{
-	// 전달받은 아이템을 지정 위치에 부착한다
-	if (Item)
+	static ConstructorHelpers::FObjectFinder<UInputAction> UseQuickSlot_1_Finder
+	(TEXT("/Game/Input/Actions/IA_UseQuickSlot_1.IA_UseQuickSlot_1"));
+	if (UseQuickSlot_1_Finder.Succeeded())
 	{
-		/* 
-		* 아이템은 본인이 장착될 위치를 가지고 있다. 
-		* 현재는 임시로 플레이어 캐릭터의 특정 소켓을 사용한다.
-		*/
-		FName SocketName(TEXT("hand_rSocket"));
-		if (!GetMesh()->DoesSocketExist(SocketName)) return;
-		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+		UseQuickSlot_1_Action = UseQuickSlot_1_Finder.Object;
 	}
 
-	// 아이템이 무기라면 공격 컴포넌트에 무기를 설정한다
-	if (Item->GetItemType() == EItemType::Weapon && AttackComponent)
+	static ConstructorHelpers::FObjectFinder<UInputAction> UseQuickSlot_2_Finder
+	(TEXT("/Game/Input/Actions/IA_UseQuickSlot_2.IA_UseQuickSlot_2"));
+	if (UseQuickSlot_2_Finder.Succeeded())
 	{
-		AttackComponent->SetWeapon(Cast<AIVWeapon>(Item));
-		AttackComponent->ProvideOwnerAttackRanges(AttackRanges);
+		UseQuickSlot_2_Action = UseQuickSlot_2_Finder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> UseQuickSlot_3_Finder
+	(TEXT("/Game/Input/Actions/IA_UseQuickSlot_3.IA_UseQuickSlot_3"));
+	if (UseQuickSlot_3_Finder.Succeeded())
+	{
+		UseQuickSlot_3_Action = UseQuickSlot_3_Finder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> UseQuickSlot_4_Finder
+	(TEXT("/Game/Input/Actions/IA_UseQuickSlot_4.IA_UseQuickSlot_4"));
+	if (UseQuickSlot_4_Finder.Succeeded())
+	{
+		UseQuickSlot_4_Action = UseQuickSlot_4_Finder.Object;
+	}
+}
+
+void AIVPlayerCharacter::EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const
+{
+	// 소켓 유무 확인 및 소켓에 무기 장착
+	if (Weapon)
+	{
+		if (!GetMesh()->DoesSocketExist(EquipSocket)) // 보통 "hand_rSocket"에 장착한다
+		{
+			return;
+		}
+		
+		if (Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, EquipSocket))
+		{
+			if (AttackComponent)
+			{
+				AttackComponent->SetWeapon(Weapon);
+				AttackComponent->ProvideOwnerAttackRanges(AttackRanges); // 캐릭터가 보유한 공격 범위 제공
+				Weapon->SetInteractable(false); 
+			}
+		}
+	}
+}
+
+void AIVPlayerCharacter::UnEquipWeapon()
+{
+	if (AttackComponent)
+	{
+		AttackComponent->SetWeapon(nullptr);
 	}
 }
 
@@ -248,7 +252,7 @@ void AIVPlayerCharacter::BeginPlay()
 	AnimInstance = GetMesh()->GetAnimInstance();
 
 	// 공격 및 피격 시스템에 애님 인스턴스 설정
-	if (AnimInstance)
+	if (AnimInstance && HitReactionComponent && AttackComponent)
 	{
 		HitReactionComponent->SetAnimInstance(AnimInstance);
 		AttackComponent->SetAnimInstance(AnimInstance);
@@ -325,6 +329,12 @@ void AIVPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 상호작용
 		Input->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::Interact);
+
+		// 퀵 슬롯
+		Input->BindAction(UseQuickSlot_1_Action, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::UseQuickSlot_1);
+		Input->BindAction(UseQuickSlot_2_Action, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::UseQuickSlot_2);
+		Input->BindAction(UseQuickSlot_3_Action, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::UseQuickSlot_3);
+		Input->BindAction(UseQuickSlot_4_Action, ETriggerEvent::Triggered, this, &AIVPlayerCharacter::UseQuickSlot_4);
 	}
 }
 
@@ -396,11 +406,11 @@ void AIVPlayerCharacter::SpecialMove(const FInputActionValue& Value)
 
 			// 방향 별 구르기 몽타주 선택
 			UAnimMontage* SelectedRollMontage = nullptr;
-			if (RollX >= 0.5)
+			if (RollX >= 0.707) // cos45 = 0.707
 			{
 				SelectedRollMontage = RollFrontMontage;
 			}
-			else if (RollX <= -0.5)
+			else if (RollX <= -0.707)
 			{
 				SelectedRollMontage = RollBackMontage;
 			}
@@ -501,6 +511,40 @@ void AIVPlayerCharacter::Interact()
 		InteractionComponent->SearchAndInteract();
 	}
 }
+
+void AIVPlayerCharacter::UseQuickSlot_1()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItemFromSlot(EInventorySlotType::QuickSlot, 0);
+	}
+}
+
+void AIVPlayerCharacter::UseQuickSlot_2()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItemFromSlot(EInventorySlotType::QuickSlot, 1);
+	}
+}
+
+void AIVPlayerCharacter::UseQuickSlot_3()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItemFromSlot(EInventorySlotType::QuickSlot, 2);
+	}
+}
+
+void AIVPlayerCharacter::UseQuickSlot_4()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItemFromSlot(EInventorySlotType::QuickSlot, 3);
+	}
+}
+
+
 
 void AIVPlayerCharacter::LockOn()
 {
@@ -674,6 +718,15 @@ void AIVPlayerCharacter::AttackEnd(bool bIsFirstCheck)
 	}
 }
 
+void AIVPlayerCharacter::AttackCancel()
+{
+	// 공격을 시도했는데 무기가 없어서 공격이 취소된 경우
+	if (CharacterStatComponent)
+	{
+		CharacterStatComponent->SetCharacterSpecialMoveState(ESpecialMovementState::None);
+	}
+}
+
 void AIVPlayerCharacter::ResetComboEnd()
 {
 	bInComboAttack = false;
@@ -690,7 +743,13 @@ void AIVPlayerCharacter::SetDead()
 	// 무기 해제
 	if (EquipComponent)
 	{
-		EquipComponent->UnequipWeapon();
+		EquipComponent->DropWeapon();
+	}
+
+	// 인벤토리 비우기
+	if (InventoryComponent)
+	{
+		InventoryComponent->ResetInventory();
 	}
 
 	// 래그돌 활성화

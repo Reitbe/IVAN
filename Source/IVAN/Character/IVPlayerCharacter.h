@@ -160,6 +160,12 @@ protected:
 
 	/* 상호작용 */ 
 	void Interact(); // 상호작용
+
+	/* 퀵 슬롯 사용 */
+	void UseQuickSlot_1();
+	void UseQuickSlot_2();
+	void UseQuickSlot_3();
+	void UseQuickSlot_4();
 	
 private:
 	/* 입력 관련 에셋들 로드 및 초기화 헬퍼 */
@@ -184,11 +190,11 @@ protected:
 	TObjectPtr<UInputAction> SpecialMovement; 
 	TObjectPtr<UInputAction> RunWalkSwitchAction; 
 
-	/* 아이템 사용 - 현재 미구현*/
-	TObjectPtr<UInputAction> UseFirstItemSlot;
-	TObjectPtr<UInputAction> UseSecondItemSlot;
-	TObjectPtr<UInputAction> UseThirdItemSlot;
-	TObjectPtr<UInputAction> UseFourthItemSlot;
+	/* 퀵 슬롯*/
+	TObjectPtr<UInputAction> UseQuickSlot_1_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_2_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_3_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_4_Action;
 
 private:
 	/* 이동 입력값 - 캐릭터 이동 및 구르기 방향 결정에 사용*/
@@ -240,11 +246,14 @@ public:
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
 	virtual void AttackEnd(bool bIsFirstCheck) override;
+	virtual void AttackCancel() override;
 	virtual void ResetComboEnd() override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
-	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;
-	virtual void EquipByInstance(TObjectPtr<AIVItemBase> Item) const override;
+	virtual UIVEquipComponent* GetEquipComponent() const override { return EquipComponent; }
+	virtual void EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const override;
+	virtual TArray<USkeletalMeshComponent*>& GetEquipMeshArray() override { return EquipMeshes; }
+	virtual void UnEquipWeapon() override;
 
 	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
 	virtual void StartHitReaction() override;

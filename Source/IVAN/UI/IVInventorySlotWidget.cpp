@@ -27,6 +27,10 @@ void UIVInventorySlotWidget::SetDragWidgetClass(TSubclassOf<UIVInventoryDragWidg
 
 void UIVInventorySlotWidget::OnItemSlotButtonPressed()
 {
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItemFromSlot(InventorySlotType, SlotIndex);
+	}
 }
 
 FReply UIVInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -70,10 +74,13 @@ void UIVInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
 
 bool UIVInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
+	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+
 	UIVDragDropOperation* DragDropOperation = Cast<UIVDragDropOperation>(InOperation);
 	if (DragDropOperation)
 	{
-		InventoryComponent->SwapInventorySlot(DragDropOperation->InventorySlotType, DragDropOperation->SlotIndex, InventorySlotType, SlotIndex);
+		InventoryComponent->DragDropItem(DragDropOperation->InventorySlotType, DragDropOperation->SlotIndex, InventorySlotType, SlotIndex);
+		return true;
 	}
 	return false;
 }

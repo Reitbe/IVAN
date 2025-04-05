@@ -39,6 +39,7 @@ void UIVCharacterStatComponent::BeginPlay()
 	}
 }
 
+
 void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -72,6 +73,24 @@ bool UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& Dam
 		return false;
 	}
 	return true;
+}
+
+void UIVCharacterStatComponent::UseConsumableItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat)
+{
+	AttachStat(ItemBaseStat);
+	AttachStat(ItemDamageStat);
+}
+
+void UIVCharacterStatComponent::EquipItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat)
+{
+	AttachStat(ItemBaseStat);
+	AttachStat(ItemDamageStat);
+}
+
+void UIVCharacterStatComponent::UnequipItem(FBaseStat& ItemBaseStat, FBaseDamageStat& ItemDamageStat)
+{
+	DetachStat(ItemBaseStat);
+	DetachStat(ItemDamageStat);
 }
 
 void UIVCharacterStatComponent::SetDead()

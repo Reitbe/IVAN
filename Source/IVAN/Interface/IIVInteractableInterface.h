@@ -22,9 +22,14 @@ class IVAN_API IIIVInteractableInterface
 	GENERATED_BODY()
 
 public:
+	/* 구체적인 상호작용 동작 */
 	virtual void Interact(AActor* InteractingActor) = 0;
-	virtual void SetInteractable(bool bNewInteractable) = 0;
 
+	/* 상호작용 가능 여부 설정 */
+	virtual void SetInteractable(bool bNewInteractable) = 0;
+	virtual bool IsInteractable() const = 0;
+
+	/* 상호작용 UI 효현 여부 */
 	virtual void ShowInteractionUI() = 0;
 	virtual void HideInteractionUI() = 0;
 };
