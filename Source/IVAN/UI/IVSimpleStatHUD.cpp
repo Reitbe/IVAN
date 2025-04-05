@@ -9,11 +9,16 @@
 #include "IVAN/Enemy/IVBossEnemy.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVMonsterComponentProvider.h"
+#include "IVAN/Interface/IIVInventoryComponentProvider.h"
 #include "IVAN/UI/IVBaseStatBar.h"
 #include "IVAN/UI/IVSimpleStatWidget.h"
 #include "IVAN/UI/IVSimpleBossStatWidget.h"
+#include "IVAN/UI/IVInventoryBaseWidget.h"
+#include "IVAN/UI/IVInventoryWidget.h"
+#include "IVAN/UI/IVQuickSlotWidget.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Stat/IVMonsterStatComponent.h"
+#include "IVAN/Item/IVInventoryComponent.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 
 AIVSimpleStatHUD::AIVSimpleStatHUD()
@@ -60,52 +65,99 @@ AIVSimpleStatHUD::AIVSimpleStatHUD()
 		TargetMarkerWidgetClass = TargetMarkerWidgetClassFinder.Class;
 	}
 
+	// 인벤토리 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UIVInventoryBaseWidget> InventoryWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_InventoryBase.WBP_InventoryBase_C"));
+	if (InventoryWidgetClassFinder.Class)
+	{
+		InventoryBaseWidgetClass = InventoryWidgetClassFinder.Class;
+	}
+
+	// 메뉴 위젯 클래스
+	//static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder
+	//(TEXT("/Game/Widget/WBP_Menu.WBP_Menu_C"));
+	//if (MenuWidgetClassFinder.Class)
+	//{
+	//	MenuWidgetClass = MenuWidgetClassFinder.Class;
+	//}
+
+	// 퀵슬롯 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UIVQuickSlotWidget> QuickSlotWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_QuickSlot.WBP_QuickSlot_C"));
+	if (QuickSlotWidgetClassFinder.Class)
+	{
+		QuickSlotWidgetClass = QuickSlotWidgetClassFinder.Class;
+	}
 }
 
 void AIVSimpleStatHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 사망 시 표시할 위젯 생성
-	if (DeathWidgetClass)
-	{
-		DeathWidget = CreateWidget<UUserWidget>(GetWorld(), DeathWidgetClass);
-		DeathWidget->AddToViewport(4); // 앞에 배치
-		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
-	// 보스 클리어 위젯 생성
-	if (BossClearWidgetClass)
-	{
-		BossClearWidget = CreateWidget<UUserWidget>(GetWorld(), BossClearWidgetClass);
-		BossClearWidget->AddToViewport(3); // 중간에 배치
-		BossClearWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
-	// 보스 스텟 표시용 위젯 생성
-	if (BossStatWidgetClass)
-	{
-		BossStatWidget = CreateWidget<UIVSimpleBossStatWidget>(GetWorld(), BossStatWidgetClass);
-		BossStatWidget->AddToViewport(2); // 중간에 배치
-		BossStatWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
-	// 플레이어 스텟 표시용 위젯 생성
-	if (PlayerStatWidgetClass)
-	{
-		PlayerStatWidget = CreateWidget<UIVSimpleStatWidget>(GetWorld(), PlayerStatWidgetClass);
-		PlayerStatWidget->AddToViewport(1); // 뒤에 배치
-		PlayerStatWidget->SetVisibility(ESlateVisibility::Visible);
-	}
-
-	// 타겟팅 마크 위젯 생성
+	// 0번 : 타겟팅 마커 위젯 생성 - 가장 아래
 	if (TargetMarkerWidgetClass)
 	{
 		TargetMarkerWidget = CreateWidget<UUserWidget>(GetWorld(), TargetMarkerWidgetClass);
-		TargetMarkerWidget->AddToViewport(0); // 가장 뒤에 배치
+		TargetMarkerWidget->AddToViewport(0);
 		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
-	
+
+	// 1번 : 플레이어 스텟 표시용 위젯 생성 - HUD 상시 표기
+	if (PlayerStatWidgetClass)
+	{
+		PlayerStatWidget = CreateWidget<UIVSimpleStatWidget>(GetWorld(), PlayerStatWidgetClass);
+		PlayerStatWidget->AddToViewport(1);
+		PlayerStatWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	// 2번 : 퀵 슬롯 위젯 생성 - HUD 상시 표기
+	if (QuickSlotWidgetClass)
+	{
+		QuickSlotWidget = CreateWidget<UIVQuickSlotWidget>(GetWorld(), QuickSlotWidgetClass);
+		QuickSlotWidget->AddToViewport(2);
+		QuickSlotWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	// 3번 : 보스 스텟 표시용 위젯 생성 - 활성화 시 표기
+	if (BossStatWidgetClass)
+	{
+		BossStatWidget = CreateWidget<UIVSimpleBossStatWidget>(GetWorld(), BossStatWidgetClass);
+		BossStatWidget->AddToViewport(3);
+		BossStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 4번 : 사망 시 표시할 위젯 생성 - 활성화 시 표기
+	if (DeathWidgetClass)
+	{
+		DeathWidget = CreateWidget<UUserWidget>(GetWorld(), DeathWidgetClass);
+		DeathWidget->AddToViewport(4); 
+		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 5번 : 보스 클리어 위젯 생성 - 활성화 시 표기
+	if (BossClearWidgetClass)
+	{
+		BossClearWidget = CreateWidget<UUserWidget>(GetWorld(), BossClearWidgetClass);
+		BossClearWidget->AddToViewport(5);
+		BossClearWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 6번 : 인벤토리 위젯 생성 - 활성화 시 표기
+	if (InventoryBaseWidgetClass)
+	{
+		InventoryBaseWidget = CreateWidget<UIVInventoryBaseWidget>(GetWorld(), InventoryBaseWidgetClass);
+		InventoryBaseWidget->AddToViewport(6); 
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 7번 : 메뉴 위젯 생성 - 활성화 시 표기, 현재 사용하지 않음
+	if (MenuWidgetClass)
+	{
+		MenuWidget = CreateWidget<UUserWidget>(GetWorld(), MenuWidgetClass);
+		MenuWidget->AddToViewport(7); 
+		MenuWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (GameInstance)
 	{
@@ -118,6 +170,37 @@ void AIVSimpleStatHUD::BeginPlay()
 			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindPlayerStatWidget);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnBossDeath);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnTargetDeath);
+		}
+	}
+
+	// 인벤토리 바인딩
+	APawn* PlayerPawn = GetOwningPawn();
+	if (PlayerPawn && PlayerPawn->Implements<UIIVInventoryComponentProvider>())
+	{
+		if (IIIVInventoryComponentProvider* Provider = Cast<IIIVInventoryComponentProvider>(PlayerPawn))
+		{
+			if (UIVInventoryComponent* InventoryComponent = Provider->GetInventoryComponent())
+			{
+				// 인벤토리 Base 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
+				if (InventoryBaseWidget)
+				{
+					InventoryBaseWidget->InventoryComponent = InventoryComponent;
+					InventoryBaseWidget->InventoryWidget->InventoryComponent = InventoryComponent;
+					InventoryBaseWidget->InventoryWidget->InitializeInventorySlots();
+
+					InventoryComponent->OnInventorySlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateInventorySlots);
+					InventoryComponent->OnQuickSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateQuickSlots);
+					InventoryComponent->OnEquipSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateEquipSlots);
+					InventoryComponent->OnWeaponSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateWeaponSlot);
+				}
+
+				// 퀵 슬롯 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
+				if (QuickSlotWidget)
+				{
+					QuickSlotWidget->SetInventoryComponent(InventoryComponent);
+					InventoryComponent->OnQuickSlotUpdated.AddDynamic(QuickSlotWidget, &UIVQuickSlotWidget::UpdateQuickSlots);
+				}
+			}
 		}
 	}
 }
@@ -299,4 +382,28 @@ void AIVSimpleStatHUD::HideTargetMarker()
 	{
 		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void AIVSimpleStatHUD::ShowInventory()
+{
+	if (InventoryBaseWidget)
+	{
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AIVSimpleStatHUD::HideInventory()
+{
+	if (InventoryBaseWidget)
+	{
+		InventoryBaseWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AIVSimpleStatHUD::ShowMenu()
+{
+}
+
+void AIVSimpleStatHUD::HideMenu()
+{
 }

@@ -12,6 +12,7 @@
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
+	None            UMETA(DisplayName = "None"),
 	Consumable      UMETA(DisplayName = "Consumable"),
 	Weapon          UMETA(DisplayName = "Weapon"),
 	Armor           UMETA(DisplayName = "Armor"),
@@ -30,6 +31,18 @@ enum class EArmorSlot : uint8
     Necklace UMETA(DisplayName = "Necklace"),
     Belt UMETA(DisplayName = "Belt"),
     Cloak UMETA(DisplayName = "Cloak")
+};
+
+// 인벤토리에서 아이템이 위치할 수 있는 슬롯 타입
+UENUM(BlueprintType)
+enum class EInventorySlotType : uint8
+{
+	None            UMETA(DisplayName = "None"),
+	QuickSlot       UMETA(DisplayName = "QuickSlot"),
+	EquipSlot       UMETA(DisplayName = "EquipSlot"),
+	WeaponSlot      UMETA(DisplayName = "WeaponSlot"),
+	InventorySlot   UMETA(DisplayName = "InventorySlot"),
+	MAX				UMETA(Hidden) // 갯수 계산용
 };
 
 class IVAN_API IVGenericItemEnums

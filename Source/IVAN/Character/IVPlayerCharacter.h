@@ -11,6 +11,7 @@
 #include "IVAN/Interface/IIVEquipInterface.h"
 #include "IVAN/Interface/IIVHitReactionInterface.h"
 #include "IVAN/Interface/IIVLockOnTargetMarker.h"
+#include "IVAN/Interface/IIVInventoryComponentProvider.h"
 #include "InputActionValue.h"
 #include "IVPlayerCharacter.generated.h"
 
@@ -25,6 +26,8 @@ class UCharacterTrajectoryComponent;
 class UIVCharacterStatComponent;
 class UIVHitReactionComponent;
 class UIVAttackComponent;
+class UIVInventoryComponent;
+class UIVInteractionComponent;
 class UMotionWarpingComponent;
 
 /**
@@ -40,6 +43,7 @@ class IVAN_API AIVPlayerCharacter
 	,public IIIVAttackEndInterface
 	,public IIIVEquipInterface
 	,public IIIVHitReactionInterface
+	,public IIIVInventoryComponentProvider
 {
 	GENERATED_BODY()
 
@@ -74,6 +78,17 @@ public:
 	/* 캐릭터에 부착된 공격 컴포넌트 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
 	TArray<UIVAttackRange*> AttackRanges;
+
+
+// 인벤토리
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TObjectPtr<UIVInventoryComponent> InventoryComponent;
+
+
+// 상호작용
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	TObjectPtr<UIVInteractionComponent> InteractionComponent;
 
 
 // 데미지 처리
@@ -112,8 +127,6 @@ protected:
 	void CheckLockOnDistance(); // 락온 거리 체크
 	void MonsterDeath(AActor* DeadMonster); // 타겟이 죽었을 때 처리
 
-	// 타겟이 시야에 있는지 확인하기 위한 라인 트레이스
-
 	/* 현재 타겟팅중인 대상 */
 	TObjectPtr<AActor> LockOnActor; 
 
@@ -144,6 +157,15 @@ protected:
 
 	/* 락온 */
 	void LockOnSwitch(); // 락온 전환
+
+	/* 상호작용 */ 
+	void Interact(); // 상호작용
+
+	/* 퀵 슬롯 사용 */
+	void UseQuickSlot_1();
+	void UseQuickSlot_2();
+	void UseQuickSlot_3();
+	void UseQuickSlot_4();
 	
 private:
 	/* 입력 관련 에셋들 로드 및 초기화 헬퍼 */
@@ -168,13 +190,17 @@ protected:
 	TObjectPtr<UInputAction> SpecialMovement; 
 	TObjectPtr<UInputAction> RunWalkSwitchAction; 
 
-	/* 아이템 사용 - 현재 미구현*/
-	TObjectPtr<UInputAction> UseFirstItemSlot;
-	TObjectPtr<UInputAction> UseSecondItemSlot;
-	TObjectPtr<UInputAction> UseThirdItemSlot;
-	TObjectPtr<UInputAction> UseFourthItemSlot;
+	/* 퀵 슬롯*/
+	TObjectPtr<UInputAction> UseQuickSlot_1_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_2_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_3_Action;
+	TObjectPtr<UInputAction> UseQuickSlot_4_Action;
 
-	
+private:
+	/* 이동 입력값 - 캐릭터 이동 및 구르기 방향 결정에 사용*/
+	FVector MoveDirection;
+
+
 // 애니메이션
 public:
 	/* 모션 매칭에 사용하는 움직임 추적 컴포넌트 */
@@ -185,15 +211,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TObjectPtr<UAnimInstance> AnimInstance;
 
-private:
-	/* 몽타주 에셋 로드를 위한 헬퍼 */
-	void MontageConstructHelper();
-
 	/* 특수 움직임에 사용되는 몽타주들 */
-	TSoftObjectPtr<UAnimMontage> RollMontage;
-	TSoftObjectPtr<UAnimMontage> DodgeRightMontage;
-	TSoftObjectPtr<UAnimMontage> DodgeLeftMontage;
-	TSoftObjectPtr<UAnimMontage> DodgeBackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TObjectPtr<UAnimMontage> RollFrontMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TObjectPtr<UAnimMontage> RollBackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TObjectPtr<UAnimMontage> RollRightMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TObjectPtr<UAnimMontage> RollLeftMontage;
 
 
 // 카메라
@@ -217,14 +246,20 @@ public:
 
 	/* IIIVAttackEndInterface 인터페이스->몽타주의 공격 종료 시점 전달용 */
 	virtual void AttackEnd(bool bIsFirstCheck) override;
+	virtual void AttackCancel() override;
 	virtual void ResetComboEnd() override;
 
 	/* IIIVEquipInterface 인터페이스->장비 장착용 */
-	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const override;
-	virtual void EquipByInstance(TObjectPtr<AIVItemBase> Item) const override;
+	virtual UIVEquipComponent* GetEquipComponent() const override { return EquipComponent; }
+	virtual void EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const override;
+	virtual TArray<USkeletalMeshComponent*>& GetEquipMeshArray() override { return EquipMeshes; }
+	virtual void UnEquipWeapon() override;
 
 	/* IIIVHitReactionInterface 인터페이스->피격 리액션용 */
 	virtual void StartHitReaction() override;
 	virtual void EndHitReaction() override;
 	virtual void EndDeathReaction() override;
+
+	/* IIIVInventoryComponentProvider 인터페이스->인벤토리 컴포넌트 제공용 */
+	virtual UIVInventoryComponent* GetInventoryComponent() const override { return InventoryComponent; }
 };

@@ -6,7 +6,8 @@
 #include "UObject/Interface.h"
 #include "IIVEquipInterface.generated.h"
 
-class AIVItemBase;
+class AIVWeapon;
+class UIVEquipComponent;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -23,9 +24,15 @@ class IVAN_API IIIVEquipInterface
 	GENERATED_BODY()
 
 public:
-	/* 방어구의 경우, 액터를 생성하지 않고 내부 정보와 스켈레탈 메시만 접근하여 장착한다 */
-	virtual void EquipByClass(TSubclassOf<AIVItemBase> Item) const = 0;
+	/* 컴포넌트 제공자 */
+	virtual UIVEquipComponent* GetEquipComponent() const = 0;
 
-	/* 무기의 경우, 액터를 생성하여 장착한다 */
-	virtual void EquipByInstance(TObjectPtr<AIVItemBase> Item) const = 0;
+	/* 장비 컴포넌트가 무기를 생성하고 캐릭터에 이를 전달한다.  */
+	virtual void EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const = 0;
+
+	/* 방어구 장착을 위한 메쉬 목록 레퍼런스 제공 */
+	virtual TArray<USkeletalMeshComponent*>& GetEquipMeshArray() = 0;
+
+	/* 장착중인 무기 해제 시 */
+	virtual void UnEquipWeapon() = 0;
 };

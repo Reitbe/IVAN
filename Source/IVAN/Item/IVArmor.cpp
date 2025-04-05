@@ -5,5 +5,5 @@
 
 AIVArmor::AIVArmor()
 {
-	ItemType = EItemType::Armor;
+
 }

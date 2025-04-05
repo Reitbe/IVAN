@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "IVAN/IVGenericStructs.h"
 #include "IVEquipComponent.generated.h"
 
 class AIVWeapon;
 class AIVArmor;
+class USkeletalMeshComponent;
 
 /*
 * 플레이어의 장비(무기, 방어구) 관리를 담당하는 컴포넌트
@@ -38,26 +40,26 @@ protected:
 
 // 무기 탈착 관련 함수
 public:
-	/* 무기를 장착한다. */
+	/* 인벤토리의 장비 슬롯에 놓인 무기를 장착한다. */
+	UFUNCTION()
 	void EquipWeapon();
 
-	/* 무기를 해제한다. */
-	void UnequipWeapon();
+	/* 캐릭터 장비컴포넌트에 지정된 무기를 장착한다 */
+	void EquipDefaultWeapon();
 
-	/* 무기를 교체한다 */
-	void ChangeWeapon(TSubclassOf<AIVWeapon> NewWeaponClass);
+	/* 무기를 레벨에 드롭한다 */
+	void DropWeapon();
+
+	/* 무기를 해제하고 맨손으로 돌아간다 */
+	void UnEquipWeapon();
 
 	/* 장착중인 무기를 반환한다 */
 	TObjectPtr<AIVWeapon> GetWeapon() const { return WeaponInstance; };
 
 
 // 방어구 탈착 관련 함수
+public:
 	/* 방어구를 장착한다. */
-	void EquipArmor();
-
-	/* 방어구를 해제한다. */
-	void UnequipArmor();
-
-	/* 방어구를 교체한다 */
-	void ChangeArmor(TSubclassOf<AIVArmor> NewArmorClass);
+	UFUNCTION()
+	void EquipArmors();
 };

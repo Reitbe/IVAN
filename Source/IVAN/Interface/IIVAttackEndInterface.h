@@ -22,6 +22,11 @@ class IVAN_API IIIVAttackEndInterface
 	GENERATED_BODY()
 
 public:
+	/* 공격 요청 -> 공격 실행 -> 공격 종료 순서에서 공격이 종료되었을 때 호출되는 함수 */
 	virtual void AttackEnd(bool bIsFirstCheck) = 0;
+
+	/* 공격 요청 -> 공격 불가! 요청 거절 시 호출되는 함수 */
+	virtual void AttackCancel() = 0;
+
 	virtual void ResetComboEnd() = 0;
 };

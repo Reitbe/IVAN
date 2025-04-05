@@ -14,7 +14,6 @@ class AIVSimpleStatHUD;
  * 본 게임에서 사용되는 플레이어 컨트롤러.
  * 입력에 따른 캐릭터 조종 작업중.
  */
-
 UCLASS()
 class IVAN_API AIVPlayerController : public APlayerController
 {
@@ -50,9 +49,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HideTargetMarker();
 
-
-
 protected:
+	/* HUD 본체*/
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;
 
@@ -61,14 +59,26 @@ protected:
 public:
 	virtual void SetupInputComponent() override;
 
-private:
-	void InputConstructHelper();
-
 protected:
 	/* 멀티 메뉴 표시 */
 	void ShowMenu();
 
+	/* 인벤토리 표시 */
+	void ShowOrHideInventory();
+
 	/* 입력 컨텍스트 및 액션 */
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	TObjectPtr<UInputAction> ShowMenuAction;
+	TObjectPtr<UInputAction> ShowInventoryAction;
+
+private:
+	/* 입력 동작 로드용 */
+	void InputConstructHelper();
+
+	/* 메뉴 위젯 부착 상태 */
+	uint8 bShowMenu : 1;
+
+	/* 인벤토리 위젯 부착 상태 */
+	uint8 bShowInventory : 1;
+
 };

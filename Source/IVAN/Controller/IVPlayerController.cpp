@@ -13,24 +13,34 @@ AIVPlayerController::AIVPlayerController()
 {
 	// 입력 관련 에셋들 초기화
 	InputConstructHelper();
+
+	bShowMenu = false;
+	bShowInventory = false;
 }
 
 // 입력 관련 에셋들은 생성자에서 초기화 및 로드
 void AIVPlayerController::InputConstructHelper()
 {
-	//static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextFinder
-	//(TEXT(""));
-	//if (InputMappingContextFinder.Succeeded())
-	//{
-	//	InputMappingContext = InputMappingContextFinder.Object;
-	//}
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextFinder
+	(TEXT("/Game/Input/IMC_PlayerController.IMC_PlayerController"));
+	if (InputMappingContextFinder.Succeeded())
+	{
+		InputMappingContext = InputMappingContextFinder.Object;
+	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> ShowMenuActionFinder
-	//(TEXT(""));
-	//if (ShowMenuActionFinder.Succeeded())
-	//{
-	//	ShowMenuAction = ShowMenuActionFinder.Object;
-	//}
+	static ConstructorHelpers::FObjectFinder<UInputAction> ShowMenuActionFinder
+	(TEXT("/Game/Input/Actions/IA_Menu.IA_Menu"));
+	if (ShowMenuActionFinder.Succeeded())
+	{
+		ShowMenuAction = ShowMenuActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> ShowInventoryActionFinder
+	(TEXT("/Game/Input/Actions/IA_Inventory.IA_Inventory"));
+	if (ShowInventoryActionFinder.Succeeded())
+	{
+		ShowInventoryAction = ShowInventoryActionFinder.Object;
+	}
 }
 
 void AIVPlayerController::BeginPlay()
@@ -112,13 +122,46 @@ void AIVPlayerController::HideTargetMarker()
 void AIVPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
+
 	if (UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
 		Input->BindAction(ShowMenuAction, ETriggerEvent::Started, this, &AIVPlayerController::ShowMenu);
+		Input->BindAction(ShowInventoryAction, ETriggerEvent::Started, this, &AIVPlayerController::ShowOrHideInventory);
 	}
 }
 
 void AIVPlayerController::ShowMenu()
 {
+	if (bShowMenu)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("메뉴 닫기"));
+		bShowMenu = false;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("메뉴 열기"));
+		bShowMenu = true;
+	}
+}
+
+void AIVPlayerController::ShowOrHideInventory()
+{
+	if (SimpleStatHUD)
+	{
+		if (bShowInventory) // 인벤토리 닫기
+		{
+			SimpleStatHUD->HideInventory();
+			SetShowMouseCursor(false);
+			GetPawn()->EnableInput(this);
+			bShowInventory = false;
+		}
+		else // 인벤토리 열기
+		{
+			SimpleStatHUD->ShowInventory();
+			SetShowMouseCursor(true);
+			GetPawn()->DisableInput(this);
+			bShowInventory = true;
+		}
+	}
 }
 

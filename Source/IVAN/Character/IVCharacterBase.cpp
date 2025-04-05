@@ -44,6 +44,17 @@ AIVCharacterBase::AIVCharacterBase()
 	NecklaceMesh->SetupAttachment(GetMesh());
 	BeltMesh->SetupAttachment(GetMesh());
 	CloakMesh->SetupAttachment(GetMesh());
+
+	// 장비 메쉬 배열에 각 메쉬 컴포넌트 추가
+	EquipMeshes.Add(HelmMesh);
+	EquipMeshes.Add(LegsMesh);
+	EquipMeshes.Add(ShoulderArmourMesh);
+	EquipMeshes.Add(FeetMesh);
+	EquipMeshes.Add(HeadMesh);
+	EquipMeshes.Add(HandsMesh);
+	EquipMeshes.Add(NecklaceMesh);
+	EquipMeshes.Add(BeltMesh);
+	EquipMeshes.Add(CloakMesh);
 }
 
 void AIVCharacterBase::BeginPlay()

@@ -114,7 +114,7 @@ void AIVEnemy::SetDead()
 	// 무기 해제
 	if (EquipComponent)
 	{
-		EquipComponent->UnequipWeapon();
+		EquipComponent->DropWeapon();
 	}
 
 	Super::SetDead();
@@ -175,39 +175,40 @@ void AIVEnemy::AttackEnd(bool bIsFirstCheck)
 	}
 }
 
+void AIVEnemy::AttackCancel()
+{
+	// 몬스터가 공격을 시도했는데 무기가 없어서 공격이 취소될 일은 없다.
+}
+
 void AIVEnemy::ResetComboEnd()
 {
 }
 
-void AIVEnemy::EquipByClass(TSubclassOf<AIVItemBase> Item) const
+void AIVEnemy::EquipByInstance(TObjectPtr<AIVWeapon> Weapon, FName EquipSocket) const
 {
-
-}
-
-void AIVEnemy::EquipByInstance(TObjectPtr<AIVItemBase> Item) const
-{
-	// 전달받은 아이템을 지정 위치에 부착한다
-	if (Item)
+	// 소켓 유무 확인 및 소켓에 무기 장착
+	if (Weapon)
 	{
-		/*
-		* 아이템은 본인이 장착될 위치를 가지고 있다.
-		* 현재는 임시로 플레이어 캐릭터의 특정 소켓을 사용한다.
-		*/
-		FName SocketName(TEXT("hand_rSocket"));
-		if (!GetMesh()->DoesSocketExist(SocketName))
+		if (!GetMesh()->DoesSocketExist(EquipSocket))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("캐릭터에 해당 소켓이 없습니다."));
 			return;
 		}
-		Item->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
-	}
 
-	// 아이템이 무기라면 공격 컴포넌트에 무기를 설정한다
-	if (Item->GetItemType() == EItemType::Weapon && AttackComponent)
-	{
-		AttackComponent->SetWeapon(Cast<AIVWeapon>(Item));
-		AttackComponent->ProvideOwnerAttackRanges(AttackRanges);
+		if (Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, EquipSocket))
+		{
+			if (AttackComponent)
+			{
+				AttackComponent->SetWeapon(Weapon);
+				AttackComponent->ProvideOwnerAttackRanges(AttackRanges);
+				Weapon->SetInteractable(false); 
+			}
+		}
 	}
+}
+
+void AIVEnemy::UnEquipWeapon()
+{
+	// 몬스터가 장착한 무기를 해제할 일은 없다.
 }
 
 void AIVEnemy::StartHitReaction()

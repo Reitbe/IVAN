@@ -8,6 +8,8 @@
 
 class UIVSimpleStatWidget;
 class UIVSimpleBossStatWidget;
+class UIVInventoryBaseWidget;
+class UIVQuickSlotWidget;
 class UIVCharacterStatComponent;
 class UIVMonsterStatComponent;
 class AIVBossEnemy;
@@ -16,7 +18,6 @@ class UAudioComponent;
 
 /**
  * 플레이어에게 필요한 HUD 정보 관리
- * 사망, 플레이어 스탯, 보스몬스터 스탯과 관련된 UI를 관리한다.
  */
 
 UCLASS()
@@ -37,16 +38,29 @@ protected:
 	void OnPlayerAlive();
 	void BindPlayerStatWidget();
 
+
 // 보스 스탯 표시
 public:
 	void OnBossDeath(AActor* DeadMonster);
 	void ShowBossStatWidget(AIVBossEnemy* Boss);
 	void HideBossStatWidget();
 
+
 // 타겟팅 마커 표시
 	void OnTargetDeath(AActor* DeadTarget);
 	void ShowTargetMarker(AActor* Target);
 	void HideTargetMarker();
+
+
+// 인벤토리 표시
+	void ShowInventory();
+	void HideInventory();
+
+
+// 메뉴 표시
+	void ShowMenu();
+	void HideMenu();
+
 
 // UI 관리
 protected:
@@ -63,25 +77,45 @@ protected:
 
 
 // UI 
+	/* 플레이어 스탯 */
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UIVSimpleStatWidget> PlayerStatWidgetClass;
 	TObjectPtr< UIVSimpleStatWidget> PlayerStatWidget;
 	
+	/* 사망 위젯 */
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> DeathWidgetClass;
 	TObjectPtr<UUserWidget> DeathWidget;
 
+	/* 보스 스탯 위젯 */
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UIVSimpleBossStatWidget> BossStatWidgetClass;
 	TObjectPtr<UIVSimpleBossStatWidget> BossStatWidget;
 
+	/* 보스 클리어 위젯 */
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> BossClearWidgetClass;
 	TObjectPtr<UUserWidget> BossClearWidget;
 
+	/* 타겟 마커 위젯 */
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UUserWidget> TargetMarkerWidgetClass;
 	TObjectPtr<UUserWidget> TargetMarkerWidget;
+
+	/* 인벤토리 위젯 */
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UIVInventoryBaseWidget> InventoryBaseWidgetClass;
+	TObjectPtr<UIVInventoryBaseWidget> InventoryBaseWidget;
+
+	/* 메뉴 위젯 */
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UUserWidget> MenuWidgetClass;
+	TObjectPtr<UUserWidget> MenuWidget;
+
+	/* 퀵슬롯 위젯 */ 
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UIVQuickSlotWidget> QuickSlotWidgetClass;
+	TObjectPtr<UIVQuickSlotWidget> QuickSlotWidget;
 
 
 // 사운드
@@ -96,14 +130,5 @@ protected:
 
 	/* 부활시 사망 사운드 중단을 위한 오디오 컴포넌트*/
 	TObjectPtr<UAudioComponent> PlayerDeathAudioComponent;
-
-
-
-
-// 위젯 애니메이션
-//public:
-//	UPROPERTY(BlueprintReadWrite, EditAnyWhere, Category = "UI", meta = (BindWidgetAnim))
-//	TObjectPtr<UWidgetAnimation> FadeWidgetAnimation;
-
 
 };

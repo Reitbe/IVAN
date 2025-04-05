@@ -33,9 +33,6 @@ protected:
 
 
 // 소유자 정보
-public:
-	void DropWeapon();
-
 private:
 	/* 무기 소유자 접근용 */
 	TObjectPtr<AController> OwnerController;
@@ -44,16 +41,12 @@ private:
 	FBaseDamageStat OwnerDamageStat;
 
 
+// 무기 장착
+public:
+	void ApplyEquipSettings();
+
 // 무기 상세 정보
 protected:
-	/* 무기 외형 스테틱 메시 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
-
-	/* 무기 데미지 스텟 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
-	FBaseDamageStat DamageStat;
-	
 	/* 콤보에 사용될 공격 몽타주 목록 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Detail")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
