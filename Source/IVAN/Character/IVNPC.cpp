@@ -61,17 +61,15 @@ void AIVNPC::OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedCompon
 {
 	if (OtherActor->ActorHasTag("Player") && bIsInteractable)
 	{
-		if (bIsInDialogue)
-		{
-			bIsInDialogue = false;
-		}
+		bIsInDialogue = false;
 		HideInteractionUI();
 	}
 }
 
 void AIVNPC::Interact(AActor* InteractingActor)
 {
-	if (!bIsInDialogue) // 기존에 대화중이지 않은 경우에만 대화 시작 가능
+	// 기존에 대화중이지 않은 경우에만 대화 시작 가능. 
+	if (!bIsInDialogue) 
 	{
 		bIsInDialogue = true;
 		HideInteractionUI();

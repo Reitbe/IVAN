@@ -32,7 +32,7 @@ void AIVANGameMode::BeginPlay()
 		LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerAlive);
 	}
 
-	// 조건 확인 서브시스템에 스테이지 확인을 위한 게임 스테이트 캐싱
+	// 조건 확인 서브시스템에 GameState 설정 - 게임모드에 GameState 설정 필수
 	UIVConditionManagerSubsystem* ConditionManager = GetGameInstance()->GetSubsystem<UIVConditionManagerSubsystem>();
 	if (ConditionManager)
 	{

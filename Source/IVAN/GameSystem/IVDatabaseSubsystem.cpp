@@ -15,14 +15,14 @@ void UIVDatabaseSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	const FString ItemDatabasePath = TEXT("/Script/IVAN.IVItemDatabase'/Game/Items/DA_ItemDatabase.DA_ItemDatabase'");
 	ItemDatabase = LoadObject<UIVItemDatabase>(nullptr, *ItemDatabasePath);
 
-	// NPC별 대화 엔트리 DB를 로드하기 위함
+	// NPC별 대화 엔트리 데이터베이스 로드를 위한 구조체
 	struct FEntry
 	{
-		FName KeyName;
-		FString Path;
+		FName KeyName; // NPC ID
+		FString Path;  // 데이터베이스 경로
 	};
 
-	// 엔트리 목록
+	// 대화 엔트리 목록
 	const TArray<FEntry> Entries =
 	{
 		{ FName(TEXT("OldMan")), TEXT("/Script/IVAN.IVDialogueEntryDatabase'/Game/GameCore/Database/DA_OldManDialogue.DA_OldManDialogue'") },

@@ -43,7 +43,7 @@ FName UIVConditionManagerSubsystem::CheckDialogueConditions(TArray<FDialogueEntr
 
 		if (bAllConditionsTrue)
 		{
-			return Entry.DialogueID; // 모든 조건이 만족하는 경우 대화 ID 반환
+			return Entry.DialogueID; // 이번 대화의 모든 조건을 만족하는 경우 대화 ID 반환
 		}
 	}
 	return Result; // 만족하는 조건이 없다면 NAME_None 반환
@@ -51,9 +51,10 @@ FName UIVConditionManagerSubsystem::CheckDialogueConditions(TArray<FDialogueEntr
 
 bool UIVConditionManagerSubsystem::CheckCondition(const FConditionInfo& ConditionInfo)
 {
-	switch (ConditionInfo.ConditionType)
+	// 조건 타입에 따라 분기
+	switch (ConditionInfo.ConditionType) 
 	{
-	case EConditionType::None:
+	case EConditionType::None: 
 		return false;
 
 	case EConditionType::Stage:

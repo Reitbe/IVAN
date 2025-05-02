@@ -8,7 +8,8 @@
 #include "IVDialogueEntryDatabase.generated.h"
 
 /**
- * 
+ * NPC별로 접근 가능한 '대화 시작 지점' 정보를 담은 데이터베이스.
+ * 이를 기반으로 NPC마다 별도의 DataAsset을 생성한다.
  */
 UCLASS()
 class IVAN_API UIVDialogueEntryDatabase : public UDataAsset

@@ -13,7 +13,8 @@ class UIVInventoryComponent;
 class UIVCharacterStatComponent;
 
 /**
- * 
+ * 대화 및 퀘스트에서 활용할 수 있도록 
+ * 주어진 조건과 현재 게임 상태를 비교하여 알려주는 서브시스템
  */
 UCLASS()
 class IVAN_API UIVConditionManagerSubsystem : public UGameInstanceSubsystem

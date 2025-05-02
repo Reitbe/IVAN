@@ -67,7 +67,7 @@ void AIVPlayerController::BeginPlay()
 			DeathEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVPlayerController::SetAlive);
 		}
 
-		// 대화 모드 전환 서브시스템 바인딩
+		// 대화 모드로의 전환을 위한 대화 서브시스템 바인딩
 		UIVDialogueManagerSubsystem* DialogueManagerSubsystem = GameInstance->GetSubsystem<UIVDialogueManagerSubsystem>();
 		if (DialogueManagerSubsystem)
 		{

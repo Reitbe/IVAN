@@ -22,7 +22,7 @@ void UIVDialogueWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// 대화 선택지 버튼 클릭 이벤트 바인딩
+	// '다음' 버튼 바인딩. 다음 대화 ID를 전달한다.
 	if (NextDialogueButton)
 	{
 		NextDialogueButton->OnButtonChoicedEvent.BindDynamic(this, &UIVDialogueWidget::OnChoiceButtonClicked);
@@ -39,15 +39,15 @@ void UIVDialogueWidget::UpdateDialogue(const FDialogueInfo& CurrentDialogue)
 	ChoiceButtonBox->ClearChildren();
 	NextDialogueButton->SetVisibility(ESlateVisibility::Collapsed);
 
-	// 선택지의 수를 기반으로 버튼 생성
+	
 	int32 ChoiceCount = CurrentDialogue.DialogueOptions.Num();
-	if (ChoiceCount <= 1)
+	if (ChoiceCount <= 1) // 단일 선택지 = 다음 버튼
 	{
 		NextDialogueButton->SetVisibility(ESlateVisibility::Visible);
 		FText NextButtonText = FText::FromString(TEXT("다음"));
 		NextDialogueButton->InitButton(NextButtonText, CurrentDialogue.DialogueOptions[0].NextDialogueID);
 	}
-	else
+	else // 선택지의 수를 기반으로 버튼 생성
 	{
 		for (int32 i = 0; i < ChoiceCount; ++i)
 		{

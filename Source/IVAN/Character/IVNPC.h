@@ -12,7 +12,7 @@ class USphereComponent;
 class UWidgetComponent;
 
 /**
- * NPC의 클래스
+ * 대화 상호작용이 가능한 NPC 클래스
  */
 UCLASS()
 class IVAN_API AIVNPC : public AIVCharacterBase, public IIIVInteractableInterface
@@ -33,6 +33,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
 	TObjectPtr<UIVDialogueComponent> DialogueComponent;
 
+private:
+	/* 대화 중인지 확인하기 위한 변수 */
+	uint8 bIsInDialogue : 1; 
+
 
 // 플레이어와 상호작용
 public:
@@ -40,6 +44,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")
 	TObjectPtr<USphereComponent> InteractionCollision;
 
+	/* 상호작용 활성화 여부 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equip")
 	uint8 bIsInteractable : 1;
 
@@ -51,16 +56,14 @@ public:
 	UFUNCTION()
 	void OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-private:
-	uint8 bIsInDialogue : 1; // 대화 중인지 여부
 
 // 플레이어 상호작용 위젯
 public:
-	/* 상호작용 범위 내로 들어왔을 때 표시할 위젯 컴포넌트 */
+	/* 상호작용 위젯 표시용 컴포넌트 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UWidgetComponent> WidgetComponent;
 
-	/* 플레이어 상호작용 - 기본 대화 상호작용 */
+	/* 플레이어가 상호작용 범위 내로 들어왔을 때 표시할 위젯 */
 	TObjectPtr<UUserWidget> TalkInteractionWidget;
 
 

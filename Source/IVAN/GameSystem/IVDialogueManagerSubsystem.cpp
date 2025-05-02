@@ -26,9 +26,9 @@ void UIVDialogueManagerSubsystem::StartDialogue(FName NPCID)
 {
 	// NPC ID에 해당하는 대화 시작 노드 찾기
 	TArray<FDialogueEntry>& DialogueEntryDB = DatabaseSubsystem->GetDialogueEntryDatabase(NPCID);
-	if (DialogueEntryDB.Num() == 0) return; // 참조라서 대화내역이 없는 DB가 있을 수 있다.
+	if (DialogueEntryDB.Num() == 0) return;
 
-	// 대화 시작 조건 확인
+	// 대화 시작 조건 검증
 	FName DialogueID = ConditionManagerSubsystem->CheckDialogueConditions(DialogueEntryDB);
 
 	// 대화 진행

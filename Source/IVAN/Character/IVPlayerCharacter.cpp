@@ -249,7 +249,7 @@ void AIVPlayerCharacter::BeginPlay()
 			DeathEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::MonsterDeath);
 		}
 
-		// 조건 확인 서브시스템에 컴포넌트 등록
+		// 대화 및 퀘스트를 위하여 조건 확인 서브시스템에 컴포넌트 바인딩
 		UIVConditionManagerSubsystem* ConditionManager = GameInstance->GetSubsystem<UIVConditionManagerSubsystem>();
 		if (ConditionManager)
 		{

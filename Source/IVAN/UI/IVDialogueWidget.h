@@ -14,7 +14,8 @@ class UVerticalBox;
 class UIVSimpleButton;
 
 /**
- * 
+ * 대화와 관련된 출력을 담당하는 위젯. 
+ * 발화자, 대화 내용, 선택지를 표시한다.
  */
 UCLASS()
 class IVAN_API UIVDialogueWidget : public UUserWidget

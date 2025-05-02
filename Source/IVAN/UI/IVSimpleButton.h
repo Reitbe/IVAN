@@ -12,7 +12,7 @@ class UButton;
 class UTextBlock;
 
 /**
- * 
+ * 단순한 버튼 위젯. 대화 선택지로 사용된다.
  */
 UCLASS()
 class IVAN_API UIVSimpleButton : public UUserWidget
@@ -22,6 +22,8 @@ class IVAN_API UIVSimpleButton : public UUserWidget
 // 초기화
 public:
 	virtual void NativeConstruct() override;
+
+	/* 버튼의 선택지와, 눌렸을 때 반환할 ID를 설정한다. */
 	void InitButton(const FText& ButtonText, const FName& DialogueID);
 
 

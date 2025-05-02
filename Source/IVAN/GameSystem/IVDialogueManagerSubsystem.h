@@ -14,7 +14,13 @@ class UIVConditionManagerSubsystem;
 class UIVDatabaseSubsystem;
 
 /**
- * 
+ * 실제로 대화를 진행하는 서브시스템.
+ * 1. DialogueComponent로부터 요청을 받고, 
+ * 2. DB Subsystem에서 대화 시작 목록을 가져와, 
+ * 3. Condition Subsystem에서 조건에 맞는 대화를 선택한 후, 
+ * 4. DB Subsystem에서 출력할 대화 내용을 가져와서,
+ * 5. HUD에 이를 전달한다. 
+ * 6. 대화가 이어진다면 4~5를 반복한다. 
  */
 UCLASS()
 class IVAN_API UIVDialogueManagerSubsystem : public UGameInstanceSubsystem

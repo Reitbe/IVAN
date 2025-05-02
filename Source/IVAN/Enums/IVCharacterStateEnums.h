@@ -59,7 +59,7 @@ enum class ELifeState : uint8
 	Dead        UMETA(DisplayName = "Dead")
 };
 
-// 캐릭터 스탯 상태...
+// 캐릭터 스탯 상태...? 사실 스탯 타입을 나타내기 위한 것.
 UENUM(BlueprintType)
 enum class EStatState : uint8
 {
