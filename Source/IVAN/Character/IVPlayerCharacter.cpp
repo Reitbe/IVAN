@@ -20,6 +20,7 @@
 #include "IVAN/Attack/IVAttackComponent.h"
 #include "IVAN/Attack/IVAttackRange.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/GameSystem/IVConditionManagerSubsystem.h"
 #include "IVAN/GameSystem/IVANGameMode.h"
 #include "IVAN/Item/IVWeapon.h"
 #include "IVAN/Item/IVInventoryComponent.h"
@@ -235,16 +236,25 @@ void AIVPlayerCharacter::BeginPlay()
 		}
 	}
 
-	// 사망 및 부활 이벤트를 서브시스템에 바인딩
+	
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (GameInstance)
 	{
+		// 사망 및 부활 이벤트를 서브시스템에 바인딩
 		UIVDeathEventSubsystem* DeathEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
 		if (DeathEventSubsystem)
 		{
 			DeathEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetDead);
 			DeathEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVPlayerCharacter::SetAlive);
 			DeathEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVPlayerCharacter::MonsterDeath);
+		}
+
+		// 조건 확인 서브시스템에 컴포넌트 등록
+		UIVConditionManagerSubsystem* ConditionManager = GameInstance->GetSubsystem<UIVConditionManagerSubsystem>();
+		if (ConditionManager)
+		{
+			ConditionManager->SetInventoryComponent(InventoryComponent);
+			ConditionManager->SetCharacterStatComponent(CharacterStatComponent);
 		}
 	}
 

@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "IVAN/IVGenericStructs.h"
 #include "IVSimpleStatHUD.generated.h"
+
+DECLARE_DELEGATE_OneParam(FContinueDialogue, const FName& /*NextDialogueID*/);
 
 class UIVSimpleStatWidget;
 class UIVSimpleBossStatWidget;
 class UIVInventoryBaseWidget;
 class UIVQuickSlotWidget;
+class UIVDialogueWidget;
 class UIVCharacterStatComponent;
 class UIVMonsterStatComponent;
 class AIVBossEnemy;
@@ -60,6 +64,25 @@ public:
 // 메뉴 표시
 	void ShowMenu();
 	void HideMenu();
+
+// 대화 UI
+	/* 대화 매니저에게 다음 대화 ID를 전달하기 위한 대리자 */
+	FContinueDialogue ContinueDialogueDelegate;
+
+	/* 대화 모드 활성화 여부 */
+	UFUNCTION()
+	void SetDialogueMode(bool bDialogueMode);
+
+	/* 대화 UI 업데이트 */
+	void UpdateDialogue(const FDialogueInfo& CurrentDialogue);
+
+	/* 대화 UI에서 선택 결과를 제공받았으므로 대화 매니저에 이를 전달 */
+	UFUNCTION()
+	void OnChiceNextDialogue(const FName& NextDialogueID);
+
+protected:
+	/* 대화 모드 여부 */
+	bool bOnDialogueMode;
 
 
 // UI 관리
@@ -116,6 +139,11 @@ protected:
 	UPROPERTY(EditAnyWhere, Category = "UI")
 	TSubclassOf<UIVQuickSlotWidget> QuickSlotWidgetClass;
 	TObjectPtr<UIVQuickSlotWidget> QuickSlotWidget;
+
+	/* 대화 위젯 */
+	UPROPERTY(EditAnyWhere, Category = "UI")
+	TSubclassOf<UIVDialogueWidget> DialogueWidgetClass;
+	TObjectPtr<UIVDialogueWidget> DialogueWidget;
 
 
 // 사운드

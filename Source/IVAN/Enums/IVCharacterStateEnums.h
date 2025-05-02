@@ -59,6 +59,15 @@ enum class ELifeState : uint8
 	Dead        UMETA(DisplayName = "Dead")
 };
 
+// 캐릭터 스탯 상태...
+UENUM(BlueprintType)
+enum class EStatState : uint8
+{
+	None        UMETA(DisplayName = "None"),
+    MaxHP       UMETA(DisplayName = "MaxHP"),
+	CurrentHP   UMETA(DisplayName = "CurrentHP"),
+};
+
 class IVAN_API IVCharacterStateEnums
 {
 };

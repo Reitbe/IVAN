@@ -49,10 +49,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HideTargetMarker();
 
+	UFUNCTION()
+	void SetDialogueMode(bool bDialogueMode);
+
 protected:
 	/* HUD 본체*/
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;
+
+	/* 대화 모드 여부 */
+	bool bOnDialogueMode;
 
 
 // 입력

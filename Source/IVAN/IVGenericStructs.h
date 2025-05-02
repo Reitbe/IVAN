@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IVAN/Enums/IVCharacterStateEnums.h"
 #include "IVAN/Enums/IVGenericItemEnums.h"
+#include "IVAN/Enums/IVGameProgressEnums.h"
 #include "IVGenericStructs.generated.h"
 
 /**
@@ -215,6 +217,182 @@ struct FItemBaseInfo
 	{
 		return ItemID == Other.ItemID;
 	}
+};
+
+
+// 상태 조건 연산용 구조체
+USTRUCT(BlueprintType)
+struct FConditionInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	/* 조건 타입 */
+	UPROPERTY(EditAnywhere)
+	EConditionType ConditionType;
+
+	/* 조건 연산자 */
+	UPROPERTY(EditAnywhere)
+	EConditionOperator ConditionOperator;
+
+	/* 조건 값 - Stage 상태에 접근하기 위함 */
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "ConditionType==EConditionType::Stage"))
+	EStageState StageStateValue;
+
+	/* 조건 값 - Quest 상태에 접근하기 위함 */
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "ConditionType==EConditionType::Quest"))
+	EQuestState QuestStateValue;
+
+	/* 조건 값 - Stat 상태에 접근하기 위함 */
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "ConditionType==EConditionType::Stat"))
+	EStatState StatTypeValue;
+
+    /* 조건 값 - Quest, Item에서 사용할 ID */
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "ConditionType==EConditionType::Quest || ConditionType==EConditionType::Item"))
+	FName PrimaryID;
+
+	/* 조건 값 - Item 수량, Stat 값 */
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "ConditionType==EConditionType::Stat || ConditionType==EConditionType::Item"))
+	float NumericValue;
+
+
+    /* 기본 생성자 */
+    FConditionInfo()
+    {
+		ConditionType = EConditionType::None;
+		ConditionOperator = EConditionOperator::None;
+		StageStateValue = EStageState::None;
+		QuestStateValue = EQuestState::None;
+		StatTypeValue = EStatState::None;
+		PrimaryID = NAME_None;
+		NumericValue = 0.0f;
+    }
+
+	/* 생성자 */
+	FConditionInfo(EConditionType InConditionType, EConditionOperator InConditionOperator, EStageState InStageStateValue, EQuestState InQuestStateValue, EStatState InStatTypeValue, FName InPrimaryID, float InNumericValue)
+	{
+		ConditionType = InConditionType;
+		ConditionOperator = InConditionOperator;
+		StageStateValue = InStageStateValue;
+		QuestStateValue = InQuestStateValue;
+		StatTypeValue = InStatTypeValue;
+		PrimaryID = InPrimaryID;
+		NumericValue = InNumericValue;
+	}
+};
+
+
+// NPC가 대화 시작을 위해 사용하는 대화 정보 구조체
+USTRUCT(BlueprintType)
+struct FDialogueEntry
+{
+    GENERATED_USTRUCT_BODY()
+
+    /* NPC ID - 발화자 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FName NPCID;
+
+	/* 대화 ID - 발화 내용 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FName DialogueID;
+
+    /* 대화 시작 조건 목록 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	TArray<FConditionInfo> Conditions;
+
+	/* 우선 순위 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	int32 Priority;
+
+    /* 기본 생성자 */
+	FDialogueEntry()
+	{
+		NPCID = NAME_None;
+		DialogueID = NAME_None;
+		Priority = 0;
+	}
+
+	/* 생성자 */
+	FDialogueEntry(FName InNPCID, FName InDialogueID, TArray<FConditionInfo> InConditions, int32 InPriority)
+	{
+		NPCID = InNPCID;
+		DialogueID = InDialogueID;
+		Conditions = InConditions;
+		Priority = InPriority;
+	}
+};
+
+
+// 대화의 선택지와 다음 대화 ID를 담는 구조체
+USTRUCT(BlueprintType)
+struct FDialogueOption
+{
+	GENERATED_USTRUCT_BODY()
+
+	/* 선택지 내용 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FText OptionText;
+
+	/* 다음 대화 ID */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FName NextDialogueID;
+
+	/* 기본 생성자 */
+	FDialogueOption()
+	{
+		OptionText = FText::FromString(TEXT("Select Option"));
+		NextDialogueID = NAME_None;
+	}
+
+	/* 생성자 */
+	FDialogueOption(FText InOptionText, FName InNextDialogueID)
+	{
+		OptionText = InOptionText;
+		NextDialogueID = InNextDialogueID;
+	}
+};
+
+
+
+// 대화에 필요한 정보를 담은 대화 구조체
+USTRUCT(BlueprintType)
+struct FDialogueInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	/* 대화 ID */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FName DialogueID;
+    
+    /* 발화자 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FText SpeakerName;
+
+	/* 대화 내용 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FText DialogueText;
+
+	/* 대화 선택지 목록 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	TArray<FDialogueOption> DialogueOptions;
+
+    /* 기본 생성자 */
+	FDialogueInfo()
+	{
+		DialogueID = NAME_None;
+		SpeakerName = FText::FromString(TEXT("Speaker"));
+		DialogueText = FText::FromString(TEXT("Dialogue Text"));
+		DialogueOptions.Add(FDialogueOption());
+	}
+
+	/* 생성자 */
+	FDialogueInfo(FName InDialogueID, FText InSpeakerName, FText InDialogueText, TArray<FDialogueOption> InDialogueOptions)
+	{
+		DialogueID = InDialogueID;
+		SpeakerName = InSpeakerName;
+		DialogueText = InDialogueText;
+		DialogueOptions = InDialogueOptions;
+	}
+
 };
 
 class IVAN_API IVGenericStructs

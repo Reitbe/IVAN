@@ -33,3 +33,4 @@ public:
 	virtual void ShowInteractionUI() = 0;
 	virtual void HideInteractionUI() = 0;
 };
+ 

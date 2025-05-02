@@ -77,6 +77,7 @@ public:
 	ETargetingState GetCharacterTargetingState() const { return TargetingState; };
 	ESpecialMovementState GetCharacterSpecialMovementState() const { return SpecialMovementState; };
 	ELifeState GetLifeState() const { return LifeState; };
+	float GetStatValue(EStatState StatType);
 	
 
 // 데미지 처리

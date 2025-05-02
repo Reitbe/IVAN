@@ -54,6 +54,20 @@ void UIVCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
+float UIVCharacterStatComponent::GetStatValue(EStatState StatType)
+{
+	switch (StatType)
+	{
+	case EStatState::MaxHP:
+		return BaseStat.MaxHP;
+
+	case EStatState::CurrentHP:
+		return BaseStat.CurrentHP;
+	}
+
+	return 0.0f;
+}
+
 bool UIVCharacterStatComponent::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
