@@ -217,6 +217,26 @@ bool UIVInventoryComponent::RemoveItemFromInventoryByIndex(EInventorySlotType Sl
 	return true;
 }
 
+FItemBaseInfo UIVInventoryComponent::GetItemInfoFromInventoryByItemID(const FName& ItemID)
+{
+	// 모든 타입의 모든 슬롯을 순회하며 해당 아이템이 있는지 확인
+	for (int32 SlotTypeIdx = 0; SlotTypeIdx < static_cast<int32>(EInventorySlotType::MAX); SlotTypeIdx++)
+	{
+		TArray<FItemBaseInfo>* SlotArray = GetSlotArray(static_cast<EInventorySlotType>(SlotTypeIdx)); // 슬롯 배열 결정
+		if (SlotArray)
+		{
+			for (int32 SlotIdx = 0; SlotIdx < (*SlotArray).Num(); SlotIdx++) // 슬롯 배열 순회
+			{
+				if ((*SlotArray)[SlotIdx].ItemID == ItemID)
+				{
+					return (*SlotArray)[SlotIdx];
+				}
+			}
+		}
+	}
+	return FItemBaseInfo(); // 아이템이 없는 경우 빈 아이템 정보 반환
+}
+
 bool UIVInventoryComponent::SwapInventorySlot(EInventorySlotType FromSlotType, int32 FromSlotIndex, EInventorySlotType ToSlotType, int32 ToSlotIndex)
 {
 	TArray<FItemBaseInfo>* FromSlotArray = IsValidSlot(FromSlotType, FromSlotIndex);

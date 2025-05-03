@@ -3,6 +3,7 @@
 #include "IVANGameMode.h"
 #include "IVAN/Character/IVANCharacter.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/GameSystem/IVConditionManagerSubsystem.h"
 #include "IVAN/Character/IVPlayerCharacter.h"
 #include "IVAN/Controller/IVPlayerController.h"
 #include "IVAN/UI/IVSimpleStatHUD.h"
@@ -29,6 +30,17 @@ void AIVANGameMode::BeginPlay()
 	{
 		LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerDeath);
 		LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVANGameMode::OnPlayerAlive);
+	}
+
+	// 조건 확인 서브시스템에 GameState 설정 - 게임모드에 GameState 설정 필수
+	UIVConditionManagerSubsystem* ConditionManager = GetGameInstance()->GetSubsystem<UIVConditionManagerSubsystem>();
+	if (ConditionManager)
+	{
+		AIVANGameState* IVGameState = Cast<AIVANGameState>(UGameplayStatics::GetGameState(this));
+		if (IVGameState)
+		{
+			ConditionManager->SetGameState(IVGameState);
+		}
 	}
 }
 

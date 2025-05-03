@@ -131,6 +131,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool RemoveItemFromInventoryByIndex(EInventorySlotType SlotType, const int32 SlotIndex);
 
+	/* 아이템 ID로 아이템 정보 습득 - 슬롯 공용 */
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FItemBaseInfo GetItemInfoFromInventoryByItemID(const FName& ItemID);
+
 	/* 인벤토리 슬롯간 아이템 이동 */ 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool SwapInventorySlot(EInventorySlotType FromSlotType, int32 FromSlotIndex, EInventorySlotType ToSlotType, int32 ToSlotIndex);

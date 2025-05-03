@@ -16,10 +16,12 @@
 #include "IVAN/UI/IVInventoryBaseWidget.h"
 #include "IVAN/UI/IVInventoryWidget.h"
 #include "IVAN/UI/IVQuickSlotWidget.h"
+#include "IVAN/UI/IVDialogueWidget.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Stat/IVMonsterStatComponent.h"
 #include "IVAN/Item/IVInventoryComponent.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/GameSystem/IVDialogueManagerSubsystem.h"
 
 AIVSimpleStatHUD::AIVSimpleStatHUD()
 {
@@ -88,6 +90,16 @@ AIVSimpleStatHUD::AIVSimpleStatHUD()
 	{
 		QuickSlotWidgetClass = QuickSlotWidgetClassFinder.Class;
 	}
+
+	// 대화 위젯 클래스
+	static ConstructorHelpers::FClassFinder<UIVDialogueWidget> DialogueWidgetClassFinder
+	(TEXT("/Game/Widget/WBP_Dialogue.WBP_Dialogue_C"));
+	if (DialogueWidgetClassFinder.Class)
+	{
+		DialogueWidgetClass = DialogueWidgetClassFinder.Class;
+	}
+
+	bOnDialogueMode = false;
 }
 
 void AIVSimpleStatHUD::BeginPlay()
@@ -158,18 +170,41 @@ void AIVSimpleStatHUD::BeginPlay()
 		MenuWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
+	// 8번 : 대화 위젯 생성 - 활성화 시 표기
+	if (DialogueWidgetClass)
+	{
+		DialogueWidget = CreateWidget<UIVDialogueWidget>(GetWorld(), DialogueWidgetClass);
+		DialogueWidget->AddToViewport(8);
+		DialogueWidget->SetVisibility(ESlateVisibility::Collapsed);
+		DialogueWidget->OnButtonChoicedEvent.BindDynamic(this, &AIVSimpleStatHUD::OnChiceNextDialogue);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Dialogue Widget Class Not Found"));
+	}
+
+
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (GameInstance)
 	{
+		// 사망 및 부활 이벤트 서브시스템 등록
 		UIVDeathEventSubsystem* LifeEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
 		if (LifeEventSubsystem)
 		{
-			// 사망 및 부활 이벤트 서브시스템 등록
 			LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerDeath);
 			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerAlive);
 			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindPlayerStatWidget);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnBossDeath);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnTargetDeath);
+		}
+
+		// 대화 이벤트 서브시스템 등록
+		UIVDialogueManagerSubsystem* DialogueManagerSubsystem = GameInstance->GetSubsystem<UIVDialogueManagerSubsystem>();
+		if (DialogueManagerSubsystem)
+		{
+			DialogueManagerSubsystem->OnDialogueModeSet.AddUObject(this, &AIVSimpleStatHUD::SetDialogueMode);
+			DialogueManagerSubsystem->OnDialogueReady.BindUObject(this, &AIVSimpleStatHUD::UpdateDialogue);
+			ContinueDialogueDelegate.BindUObject(DialogueManagerSubsystem, &UIVDialogueManagerSubsystem::ContinueDialogue);
 		}
 	}
 
@@ -406,4 +441,56 @@ void AIVSimpleStatHUD::ShowMenu()
 
 void AIVSimpleStatHUD::HideMenu()
 {
+}
+
+void AIVSimpleStatHUD::SetDialogueMode(bool bDialogueMode)
+{
+	if (bDialogueMode != bOnDialogueMode)
+	{
+		if (bDialogueMode) // 대화모드로 전환
+		{
+			if (PlayerStatWidget)
+			{
+				PlayerStatWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			if (QuickSlotWidget)
+			{
+				QuickSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			if (DialogueWidget)
+			{
+				DialogueWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+			bOnDialogueMode = true;
+		}
+		else // 대화모드 해제
+		{
+			if(PlayerStatWidget)
+			{
+				PlayerStatWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+			if (QuickSlotWidget)
+			{
+				QuickSlotWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+			if (DialogueWidget)
+			{
+				DialogueWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			bOnDialogueMode = false;
+		}
+	}
+}
+
+void AIVSimpleStatHUD::UpdateDialogue(const FDialogueInfo& CurrentDialogue)
+{
+	if (DialogueWidget)
+	{
+		DialogueWidget->UpdateDialogue(CurrentDialogue);
+	}
+}
+
+void AIVSimpleStatHUD::OnChiceNextDialogue(const FName& NextDialogueID)
+{
+	ContinueDialogueDelegate.ExecuteIfBound(NextDialogueID);
 }

@@ -8,6 +8,7 @@
 #include "InputAction.h"
 #include "IVAN/UI/IVSimpleStatHUD.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
+#include "IVAN/GameSystem/IVDialogueManagerSubsystem.h"
 
 AIVPlayerController::AIVPlayerController()
 {
@@ -16,6 +17,7 @@ AIVPlayerController::AIVPlayerController()
 
 	bShowMenu = false;
 	bShowInventory = false;
+	bOnDialogueMode = false;
 }
 
 // 입력 관련 에셋들은 생성자에서 초기화 및 로드
@@ -53,15 +55,23 @@ void AIVPlayerController::BeginPlay()
 		InputSubsystem->AddMappingContext(InputMappingContext, 0); // 캐릭터는 Priority가 1이다
 	}
 
-	// 사망 및 부활 이벤트를 서브시스템에 바인딩
+	
 	UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (GameInstance)
 	{
+		// 사망 및 부활 이벤트를 서브시스템에 바인딩
 		UIVDeathEventSubsystem* DeathEventSubsystem = GameInstance->GetSubsystem<UIVDeathEventSubsystem>();
 		if (DeathEventSubsystem)
 		{
 			DeathEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVPlayerController::SetDead);
 			DeathEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVPlayerController::SetAlive);
+		}
+
+		// 대화 모드로의 전환을 위한 대화 서브시스템 바인딩
+		UIVDialogueManagerSubsystem* DialogueManagerSubsystem = GameInstance->GetSubsystem<UIVDialogueManagerSubsystem>();
+		if (DialogueManagerSubsystem)
+		{
+			DialogueManagerSubsystem->OnDialogueModeSet.AddUObject(this, &AIVPlayerController::SetDialogueMode);
 		}
 	}
 
@@ -116,6 +126,26 @@ void AIVPlayerController::HideTargetMarker()
 	if (SimpleStatHUD)
 	{
 		SimpleStatHUD->HideTargetMarker();
+	}
+}
+
+void AIVPlayerController::SetDialogueMode(bool bDialogueMode)
+{
+	if (bDialogueMode != bOnDialogueMode)
+	{
+		if (bDialogueMode) // 대화모드로 전환
+		{
+			SetShowMouseCursor(true);
+			GetPawn()->DisableInput(this);
+			bOnDialogueMode = true;
+		
+		}
+		else // 대화모드 해제
+		{
+			SetShowMouseCursor(false);
+			GetPawn()->EnableInput(this);
+			bOnDialogueMode = false;
+		}
 	}
 }
 

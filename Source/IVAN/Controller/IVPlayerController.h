@@ -49,10 +49,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HideTargetMarker();
 
+	/* 대화 모드 진입-탈출 변경을 위한 함수*/
+	UFUNCTION()
+	void SetDialogueMode(bool bDialogueMode);
+
 protected:
 	/* HUD 본체*/
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TObjectPtr<AIVSimpleStatHUD> SimpleStatHUD;
+
+	/* 대화 모드 활성화 여부 */
+	bool bOnDialogueMode;
 
 
 // 입력
