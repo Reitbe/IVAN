@@ -56,7 +56,7 @@ void AIVItemBase::BeginPlay()
 		if (DatabaseSubsystem)
 		{
 			UIVItemDatabase* ItemDatabase = DatabaseSubsystem->GetItemDatabase();
-			if (ItemDatabase)
+			if (ItemDatabase && ItemInfo.ItemID != NAME_None)
 			{
 				ItemInfo = *ItemDatabase->GetItemBaseInfo(ItemInfo.ItemID);
 				InitializeItem(ItemInfo, ItemInfo.ItemCount);

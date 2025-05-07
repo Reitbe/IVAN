@@ -4,6 +4,7 @@
 #include "IVInventoryComponent.h"
 #include "IVAN/Item/IVItemDatabase.h"
 #include "IVAN/GameSystem/IVDatabaseSubsystem.h"
+#include "IVAN/GameSystem/IVSaveManagerSubsystem.h"
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVEquipInterface.h"
@@ -51,6 +52,14 @@ void UIVInventoryComponent::BeginPlay()
 		ItemDatabase = DatabaseSubsystem->GetItemDatabase();
 	}
 
+	// 저장된 내용으로 인벤토리 초기화
+	UIVSaveManagerSubsystem* SaveManager = GetWorld()->GetGameInstance()->GetSubsystem<UIVSaveManagerSubsystem>();
+	if (SaveManager)
+	{
+		LoadInventory(SaveManager); // 세이브 매니저에서 인벤토리 로드
+		SaveManager->OnSaveRequested.AddUObject(this, &UIVInventoryComponent::SaveInventory); // 세이브 요청 시 인벤토리 저장
+	}
+
 	// 플레이어 스탯 컴포넌트 연결
 	AActor* Owner = GetOwner();
 	if (Owner && Owner->Implements<UIIVCharacterComponentProvider>())
@@ -64,6 +73,49 @@ void UIVInventoryComponent::BeginPlay()
 	{
 		IIIVEquipInterface* EquipOwner = Cast<IIIVEquipInterface>(Owner);
 		EquipComponent = EquipOwner->GetEquipComponent();
+	}
+}
+
+void UIVInventoryComponent::SaveInventory(UIVSaveGame* SaveGame)
+{
+	if (SaveGame)
+	{
+		SaveGame->SavedInventorySlots = InventorySlots;
+		SaveGame->SavedQuickSlots = QuickSlots;
+		SaveGame->SavedEquipSlots = EquipSlots;
+		SaveGame->SavedWeaponSlots = WeaponSlots;
+	}
+}
+
+void UIVInventoryComponent::LoadInventory(UIVSaveManagerSubsystem* SaveManager)
+{
+	if (SaveManager)
+	{
+		// 방어구, 무기, 퀵슬롯은 공용슬롯에 데이터 이동 이후 스왑하는 방식으로 추가(장착 및 갱신을 위함)
+		TArray<FItemBaseInfo> SlotArray = SaveManager->GetEquipSlots();
+		for (int32 SlotIdx = 0; SlotIdx < SlotArray.Num(); SlotIdx++)
+		{
+			InventorySlots[0] = SlotArray[SlotIdx];
+			SwapInventorySlot(EInventorySlotType::InventorySlot, 0, EInventorySlotType::EquipSlot, SlotIdx);
+		}
+
+		SlotArray = SaveManager->GetWeaponSlots();
+		for (int32 SlotIdx = 0; SlotIdx < SlotArray.Num(); SlotIdx++)
+		{
+			InventorySlots[0] = SlotArray[SlotIdx];
+			SwapInventorySlot(EInventorySlotType::InventorySlot, 0, EInventorySlotType::WeaponSlot, SlotIdx);
+		}
+
+		SlotArray = SaveManager->GetQuickSlots();
+		for (int32 SlotIdx = 0; SlotIdx < SlotArray.Num(); SlotIdx++)
+		{
+			InventorySlots[0] = SlotArray[SlotIdx];
+			SwapInventorySlot(EInventorySlotType::InventorySlot, 0, EInventorySlotType::QuickSlot, SlotIdx);
+		}
+
+		// 공용 슬롯은 별도 스왑 없이 복사 후 갱신 진행
+		InventorySlots = SaveManager->GetInventorySlots();
+		OnInventorySlotUpdated.Broadcast();
 	}
 }
 
@@ -339,7 +391,7 @@ bool UIVInventoryComponent::DragDropItem(EInventorySlotType FromSlotType, int32 
 		{
 			return SwapInventorySlot(FromSlotType, FromSlotIndex, ToSlotType, ToSlotIndex);
 		}
-		// 일반 인벤토리 슬롯과 장비 슬롯간 이동은 장비 처리. anrl 무기 슬롯도 동일하다.
+		// 일반 인벤토리 슬롯과 장비 슬롯간 이동은 장비 처리. 무기 슬롯도 동일하다.
 		else if (FromSlotType == EInventorySlotType::EquipSlot || ToSlotType == EInventorySlotType::EquipSlot)
 		{
 			return EquipItem(FromSlotType, FromSlotIndex, ToSlotType, ToSlotIndex);

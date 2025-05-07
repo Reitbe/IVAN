@@ -16,7 +16,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponSlotUpdated);
 
 class UIVItemDatabase;
 class UIVCharacterStatComponent;
+class UIVSaveManagerSubsystem;
 class UIVEquipComponent;
+class UIVSaveGame;
 
 /*
 * 플레이어 캐릭터의 아이템을 관리하는 인벤토리 컴포넌트.
@@ -44,6 +46,14 @@ private:
 
 	/* 플레이어 장비 컴포넌트 */
 	TObjectPtr<UIVEquipComponent> EquipComponent;
+
+
+// 세이브 시스템
+public:
+	/* 인벤토리 정보를 세이브 매니저에 세이브 && 로드 */
+	UFUNCTION()
+	void SaveInventory(UIVSaveGame* SaveGame);
+	void LoadInventory(UIVSaveManagerSubsystem* SaveManager);
 
 
 // 인벤토리 갱신 대리자
