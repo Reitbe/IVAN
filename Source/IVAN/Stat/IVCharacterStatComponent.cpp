@@ -112,16 +112,6 @@ void UIVCharacterStatComponent::SetDead()
 	Super::SetDead();
 
 	LifeState = ELifeState::Dead;
-
-	// 2초 후 부활 브로드캐스트
-	//FTimerHandle RespawnTimer;
-	//GetWorld()->GetTimerManager().SetTimer(RespawnTimer, [this]()
-	//	{
-	//		if (LifeEventSubsystem)
-	//		{
-	//			LifeEventSubsystem->PlayerRespawnEventDelegate.Broadcast();
-	//		}
-	//	}, 2.0f, false);
 }
 
 void UIVCharacterStatComponent::SetAlive()

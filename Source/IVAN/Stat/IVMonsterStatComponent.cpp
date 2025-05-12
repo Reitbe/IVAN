@@ -24,13 +24,13 @@ void UIVMonsterStatComponent::BeginPlay()
 void UIVMonsterStatComponent::SetDead()
 {
 	Super::SetDead();
-	EMonsterState NewState = EMonsterState::Dead;
+	MonsterState = EMonsterState::Dead;
 }
 
 void UIVMonsterStatComponent::SetAlive()
 {
 	Super::SetAlive();
-	EMonsterState NewState = EMonsterState::Idle;
+	MonsterState = EMonsterState::Idle;
 }
 
 void UIVMonsterStatComponent::AttachStat(const FBaseStat& OtherStat)
@@ -58,7 +58,7 @@ bool UIVMonsterStatComponent::TakeDamage(float Damage, FDamageEvent const& Damag
 	DetachStat(FBaseStat(0.0f, Damage, 0.0f, 0.0f)); // 체력 감소 처리
 
 	// 체력이 0 이하로 떨어지면 사망 처리
-	if (BaseStat.CurrentHP <= 0)
+	if (BaseStat.CurrentHP <= 0 && MonsterState != EMonsterState::Dead)
 	{
 		BaseStat.CurrentHP = FMath::Clamp(BaseStat.CurrentHP, 0.0f, BaseStat.MaxHP);
 

@@ -34,10 +34,10 @@ struct FBaseStat
 
 	FBaseStat()
 	{
-		MaxHP = 100.0f;
-		CurrentHP = 100.0f;
-		MaxStamina = 100.0f;
-		CurrentStamina = 100.0f;
+		MaxHP = 0.0f;
+		CurrentHP = 0.0f;
+		MaxStamina = 0.0f;
+		CurrentStamina = 0.0f;
 	}
 
 	FBaseStat(float InMaxHP, float InCurrentHP, float InMaxStamina, float InCurrentStamina)
@@ -53,9 +53,9 @@ struct FBaseStat
     {
         FBaseStat Result;
         Result.MaxHP = MaxHP + Other.MaxHP;
-        Result.CurrentHP = CurrentHP + Other.CurrentHP;
+		Result.CurrentHP = FMath::Clamp(CurrentHP + Other.CurrentHP, 0.0f, MaxHP);
         Result.MaxStamina = MaxStamina + Other.MaxStamina;
-        Result.CurrentStamina = CurrentStamina + Other.CurrentStamina;
+        Result.CurrentStamina = FMath::Clamp(CurrentStamina + Other.CurrentStamina, 0.0f, MaxStamina);
         return Result;
     }
 
@@ -63,9 +63,9 @@ struct FBaseStat
     {
         FBaseStat Result;
         Result.MaxHP = MaxHP - Other.MaxHP;
-        Result.CurrentHP = CurrentHP - Other.CurrentHP;
+        Result.CurrentHP = FMath::Clamp(CurrentHP - Other.CurrentHP, 0.0f, MaxHP);
         Result.MaxStamina = MaxStamina - Other.MaxStamina;
-        Result.CurrentStamina = CurrentStamina - Other.CurrentStamina;
+        Result.CurrentStamina = FMath::Clamp(CurrentStamina - Other.CurrentStamina, 0.0f, MaxStamina);
         return Result;
     }
 };
@@ -90,7 +90,7 @@ struct FBaseDamageStat
 
     FBaseDamageStat()
     {
-        BaseDamage = 10.0f;
+        BaseDamage = 0.0f;
         AdditionalDamage = 0.0f;
         DamageReduction = 0.0f;
     }
@@ -215,6 +215,12 @@ struct FItemBaseInfo
 	bool operator==(const FItemBaseInfo& Other) const
 	{
 		return ItemID == Other.ItemID;
+	}
+
+	/* != 연산자 오버로딩 */
+	bool operator!=(const FItemBaseInfo& Other) const
+	{
+		return ItemID != Other.ItemID;
 	}
 };
 

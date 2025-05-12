@@ -23,9 +23,10 @@ void UIVDatabaseSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	};
 
 	// 대화 엔트리 목록
-	const TArray<FEntry> Entries =
+	const TArray<FEntry> Entries = 
 	{
-		{ FName(TEXT("OldMan")), TEXT("/Script/IVAN.IVDialogueEntryDatabase'/Game/GameCore/Database/DA_OldManDialogue.DA_OldManDialogue'") },
+		{ FName(TEXT("Knight")), TEXT("/Script/IVAN.IVDialogueEntryDatabase'/Game/GameCore/Database/DA_KnightDialogue.DA_KnightDialogue'") },
+		{ FName(TEXT("Villager")), TEXT("/Script/IVAN.IVDialogueEntryDatabase'/Game/GameCore/Database/DA_VillagerDialogue.DA_VillagerDialogue'") },
 	};
 	
 	// 대화 엔트리 DB 로드

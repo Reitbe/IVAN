@@ -4,6 +4,7 @@
 #include "IVAN/Character/IVANCharacter.h"
 #include "IVAN/GameSystem/IVDeathEventSubsystem.h"
 #include "IVAN/GameSystem/IVConditionManagerSubsystem.h"
+#include "IVAN/GameSystem/IVSaveManagerSubsystem.h"
 #include "IVAN/Character/IVPlayerCharacter.h"
 #include "IVAN/Controller/IVPlayerController.h"
 #include "IVAN/UI/IVSimpleStatHUD.h"
@@ -48,21 +49,11 @@ void AIVANGameMode::RespawnPlayer(AIVPlayerCharacter* DeadCharacter)
 {
 	if (DeadCharacter)
 	{
-		// [임시] 월드의 플레이어 리스폰 포인트 가져오기
-		TArray<AActor*> RespawnPoints;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), RespawnPointClass, RespawnPoints);
-
-		// 위치 및 각도 설정
-		FVector RespawnLocation = FVector::ZeroVector;
-		if (RespawnPoints.Num() == 0)
-		{
-			RespawnLocation = FVector(900.0f, 1110.0f, 120.0f);
-		}
-		else
-		{
-			RespawnLocation = RespawnPoints[0]->GetActorLocation();
-		}
-		FRotator RespawnRotation = FRotator::ZeroRotator;
+		// 세이브 매니저에 저장된 리스폰 지점을 사용
+		UIVSaveManagerSubsystem* SaveManager = GetGameInstance()->GetSubsystem<UIVSaveManagerSubsystem>();
+		FTransform SpawnTransform = (SaveManager) ? SaveManager->GetTransform() : FTransform();
+		FVector RespawnLocation = SpawnTransform.GetLocation();
+		FRotator RespawnRotation = SpawnTransform.GetRotation().Rotator();
 
 		AController* PlayerController = DeadCharacter->GetController();
 

@@ -194,6 +194,7 @@ void AIVSimpleStatHUD::BeginPlay()
 			LifeEventSubsystem->PlayerDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerDeath);
 			LifeEventSubsystem->PlayerRespawnEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnPlayerAlive);
 			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindPlayerStatWidget);
+			LifeEventSubsystem->PlayerRespawnCompleteDelegate.AddUObject(this, &AIVSimpleStatHUD::BindInventoryWidget);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnBossDeath);
 			LifeEventSubsystem->MonsterDeathEventDelegate.AddUObject(this, &AIVSimpleStatHUD::OnTargetDeath);
 		}
@@ -208,36 +209,7 @@ void AIVSimpleStatHUD::BeginPlay()
 		}
 	}
 
-	// 인벤토리 바인딩
-	APawn* PlayerPawn = GetOwningPawn();
-	if (PlayerPawn && PlayerPawn->Implements<UIIVInventoryComponentProvider>())
-	{
-		if (IIIVInventoryComponentProvider* Provider = Cast<IIIVInventoryComponentProvider>(PlayerPawn))
-		{
-			if (UIVInventoryComponent* InventoryComponent = Provider->GetInventoryComponent())
-			{
-				// 인벤토리 Base 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
-				if (InventoryBaseWidget)
-				{
-					InventoryBaseWidget->InventoryComponent = InventoryComponent;
-					InventoryBaseWidget->InventoryWidget->InventoryComponent = InventoryComponent;
-					InventoryBaseWidget->InventoryWidget->InitializeInventorySlots();
-
-					InventoryComponent->OnInventorySlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateInventorySlots);
-					InventoryComponent->OnQuickSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateQuickSlots);
-					InventoryComponent->OnEquipSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateEquipSlots);
-					InventoryComponent->OnWeaponSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateWeaponSlot);
-				}
-
-				// 퀵 슬롯 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
-				if (QuickSlotWidget)
-				{
-					QuickSlotWidget->SetInventoryComponent(InventoryComponent);
-					InventoryComponent->OnQuickSlotUpdated.AddDynamic(QuickSlotWidget, &UIVQuickSlotWidget::UpdateQuickSlots);
-				}
-			}
-		}
-	}
+	BindInventoryWidget();
 }
 
 void AIVSimpleStatHUD::Tick(float DeltaSeconds)
@@ -416,6 +388,41 @@ void AIVSimpleStatHUD::HideTargetMarker()
 	if (TargetMarkerWidget)
 	{
 		TargetMarkerWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AIVSimpleStatHUD::BindInventoryWidget()
+{
+	// 인벤토리 바인딩
+	APawn* PlayerPawn = GetOwningPawn();
+	if (PlayerPawn && PlayerPawn->Implements<UIIVInventoryComponentProvider>())
+	{
+		if (IIIVInventoryComponentProvider* Provider = Cast<IIIVInventoryComponentProvider>(PlayerPawn))
+		{
+			if (UIVInventoryComponent* InventoryComponent = Provider->GetInventoryComponent())
+			{
+				// 인벤토리 Base 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
+				if (InventoryBaseWidget)
+				{
+					InventoryBaseWidget->InventoryComponent = InventoryComponent;
+					InventoryBaseWidget->InventoryWidget->InventoryComponent = InventoryComponent;
+					InventoryBaseWidget->InventoryWidget->InitializeInventorySlots();
+
+					InventoryComponent->OnInventorySlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateInventorySlots);
+					InventoryComponent->OnQuickSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateQuickSlots);
+					InventoryComponent->OnEquipSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateEquipSlots);
+					InventoryComponent->OnWeaponSlotUpdated.AddDynamic(InventoryBaseWidget->InventoryWidget, &UIVInventoryWidget::UpdateWeaponSlot);
+				}
+
+				// 퀵 슬롯 위젯에 해당 인벤토리 컴포넌트 전달 및 바인딩
+				if (QuickSlotWidget)
+				{
+					QuickSlotWidget->SetInventoryComponent(InventoryComponent);
+					QuickSlotWidget->UpdateQuickSlots();
+					InventoryComponent->OnQuickSlotUpdated.AddDynamic(QuickSlotWidget, &UIVQuickSlotWidget::UpdateQuickSlots);
+				}
+			}
+		}
 	}
 }
 

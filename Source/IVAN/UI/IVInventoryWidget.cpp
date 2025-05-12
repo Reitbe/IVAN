@@ -134,21 +134,25 @@ void UIVInventoryWidget::InitializeInventorySlots()
 		for (int32 i = 0; i < InventorySlots.Num(); i++)
 		{
 			InventorySlots[i]->SetInventoryComponent(InventoryComponent);
+			InventorySlots[i]->SetItemInfo(InventoryComponent->InventorySlots[i]);
 		}
 
 		for (int32 i = 0; i < EquipSlots.Num(); i++)
 		{
 			EquipSlots[i]->SetInventoryComponent(InventoryComponent);
+			EquipSlots[i]->SetItemInfo(InventoryComponent->EquipSlots[i]);
 		}
 
 		for (int32 i = 0; i < QuickSlots.Num(); i++)
 		{
 			QuickSlots[i]->SetInventoryComponent(InventoryComponent);
+			QuickSlots[i]->SetItemInfo(InventoryComponent->QuickSlots[i]);
 		}
 
 		for (int32 i = 0; i < WeaponSlots.Num(); i++)
 		{
 			WeaponSlots[i]->SetInventoryComponent(InventoryComponent);
+			WeaponSlots[i]->SetItemInfo(InventoryComponent->WeaponSlots[i]);
 		}
 	}
 

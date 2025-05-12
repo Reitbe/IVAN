@@ -57,6 +57,8 @@ public:
 
 
 // 인벤토리 표시
+	/* 플레이어 캐릭터 빙의 이후 진행되는 인벤토리 컴포넌트-위젯 연결*/
+	void BindInventoryWidget();
 	void ShowInventory();
 	void HideInventory();
 

@@ -7,9 +7,10 @@
 #include "IVAN/Enums/IVGameProgressEnums.h"
 #include "IVANGameState.generated.h"
 
+class UIVSaveGame;
+
 /**
  * 게임 진행에 필요한 정보를 담아둔 클래스.
- * 아직 스테이지 정보만 담고 있다. 
  */
 UCLASS()
 class IVAN_API AIVANGameState : public AGameStateBase
@@ -19,6 +20,7 @@ class IVAN_API AIVANGameState : public AGameStateBase
 // 기본
 public:
 	AIVANGameState();
+	virtual void BeginPlay() override;
 
 
 // 스테이지 정보
@@ -30,5 +32,10 @@ private:
 	/* 진행중인 스테이지 상태 */
 	EStageState CurrentStageState;
 
-	
+
+// 세이브 시스템
+public:
+	/* 스테이지 정보를 세이브 매니저에 저장*/
+	UFUNCTION()
+	void SaveStageState(UIVSaveGame* SaveGame);
 };

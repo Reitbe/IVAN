@@ -756,12 +756,6 @@ void AIVPlayerCharacter::SetDead()
 		EquipComponent->DropWeapon();
 	}
 
-	// 인벤토리 비우기
-	if (InventoryComponent)
-	{
-		InventoryComponent->ResetInventory();
-	}
-
 	// 래그돌 활성화
 	Super::SetDead();
 }

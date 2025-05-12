@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "IVAN/Enemy/IVEnemy.h"
 #include "IVAN/Interface/IIVAICharacterSpecialCombat.h"
+#include "IVAN/Interface/IIVAIControllerSpecialCombat.h"
 #include "IVBossEnemy.generated.h"
 
 /**
