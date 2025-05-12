@@ -164,12 +164,10 @@ void AIVPlayerController::ShowMenu()
 {
 	if (bShowMenu)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("메뉴 닫기"));
 		bShowMenu = false;
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("메뉴 열기"));
 		bShowMenu = true;
 	}
 }

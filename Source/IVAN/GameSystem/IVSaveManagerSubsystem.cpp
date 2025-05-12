@@ -12,6 +12,8 @@ void UIVSaveManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	// 게임 저장 파일 초기화
+	//SaveGameFile = Cast<UIVSaveGame>(UGameplayStatics::CreateSaveGameObject(UIVSaveGame::StaticClass()));
+	
 	USaveGame* SaveGame = UGameplayStatics::LoadGameFromSlot(TEXT("DefaultSlot"), 0);
 	if (SaveGame)
 	{

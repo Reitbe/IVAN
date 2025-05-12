@@ -19,6 +19,7 @@ class UIVCharacterStatComponent;
 class UIVSaveManagerSubsystem;
 class UIVEquipComponent;
 class UIVSaveGame;
+class USoundCue;
 
 /*
 * 플레이어 캐릭터의 아이템을 관리하는 인벤토리 컴포넌트.
@@ -179,4 +180,16 @@ private:
 
 	/* 인벤토리 슬롯간 아이템 스왑 가능 여부 검사 */
 	bool CanSwapSlot(EInventorySlotType FromSlotType, int32 FromSlotIndex, EInventorySlotType ToSlotType, int32 ToSlotIndex);
+
+
+// 사운드
+public:
+	/* 장비 장착 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> EquipSound;
+
+	/* 소비 아이템 사용 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> ConsumeSound;
+
 };

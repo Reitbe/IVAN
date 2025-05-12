@@ -8,6 +8,8 @@
 #include "IVAN/Stat/IVCharacterStatComponent.h"
 #include "IVAN/Interface/IIVCharacterComponentProvider.h"
 #include "IVAN/Interface/IIVEquipInterface.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 UIVInventoryComponent::UIVInventoryComponent()
 {
@@ -322,7 +324,7 @@ bool UIVInventoryComponent::SwapInventorySlot(EInventorySlotType FromSlotType, i
 		NotifySlotUpdated(FromSlotType);
 	}
 
-	return false;
+	return true;
 }
 
 bool UIVInventoryComponent::DropItemFromInventoryToLevel(EInventorySlotType SlotType, const int32 SlotIndex)
@@ -437,6 +439,13 @@ bool UIVInventoryComponent::UseItemFromSlot(EInventorySlotType SlotType, const i
 	// 무기 및 장비아이템인 경우 - 스왑 & 기존 장비 해제 & 새 장비 등록
 	else if (ItemType == EItemType::Armor || ItemType == EItemType::Weapon) 
 	{
+		// 이미 장착중인 아이템을 더블클릭한 경우
+		if (ItemType == EItemType::Armor && SlotType == EInventorySlotType::EquipSlot ||
+			ItemType == EItemType::Weapon && SlotType == EInventorySlotType::WeaponSlot )
+		{
+			return false;
+		}
+
 		// 목적 배열에 빈 슬롯이 있는지 확인, 빈 슬롯이 없다면 첫번째 슬롯으로 대체
 		TArray<FItemBaseInfo>* DestSlotArray = (ItemType == EItemType::Armor) ? &EquipSlots : &WeaponSlots;
 		int32 DestSlotIndex = 0;
@@ -467,9 +476,14 @@ bool UIVInventoryComponent::ConsumeItem(EInventorySlotType SlotType, const int32
 	{
 		FItemBaseInfo ItemBaseInfo = (*GetSlotArray(SlotType))[SlotIndex]; // 사용할 아이템의 스탯 정보 획득
 		CharacterStatComponent->UseConsumableItem(ItemBaseInfo.ItemStat, ItemBaseInfo.ItemDamageStat); // 아이템 스탯 적용
-
+			
 		if (RemoveItemFromInventoryByIndex(SlotType, SlotIndex)) // 인벤토리에서 아이템 제거
 		{ 
+			if (ConsumeSound) // 아이템 사용 사운드 재생
+			{
+				UGameplayStatics::PlaySound2D(GetWorld(), ConsumeSound);
+			}
+
 			NotifySlotUpdated(SlotType); // 성공시 인벤토리 갱신
 		}
 		return true;
@@ -483,17 +497,32 @@ bool UIVInventoryComponent::ConsumeItem(EInventorySlotType SlotType, const int32
 bool UIVInventoryComponent::EquipItem(EInventorySlotType FromSlotType, int32 FromSlotIndex, EInventorySlotType ToSlotType, int32 ToSlotIndex)
 {
 	/* 슬롯과 아이템 정보는 이미 검사된 상태 */
-
 	// 스왑을 먼저 처리한다. 스왑이 성공한다면 스탯 작업을 처리한다. 
-	if (SwapInventorySlot(FromSlotType, FromSlotIndex, ToSlotType, ToSlotIndex))
+	if (SwapInventorySlot(FromSlotType, FromSlotIndex, ToSlotType, ToSlotIndex) && CharacterStatComponent)
 	{
-		if (CharacterStatComponent)
+		// 공용 슬롯 -> 장비 슬롯으로 이동하는 경우(스왑 이후이므로 From : 해제, To : 장착)
+		if (FromSlotType == EInventorySlotType::InventorySlot)
 		{
-			FItemBaseInfo EquipItemInfo = (*GetSlotArray(ToSlotType))[ToSlotIndex]; // 장착한 아이템의 스탯 획득
-			CharacterStatComponent->EquipItem(EquipItemInfo.ItemStat, EquipItemInfo.ItemDamageStat); // 아이템 스탯 적용
+			FItemBaseInfo EquipItemInfo = (*GetSlotArray(ToSlotType))[ToSlotIndex]; 
+			CharacterStatComponent->EquipItem(EquipItemInfo.ItemStat, EquipItemInfo.ItemDamageStat);
 
-			FItemBaseInfo UnequipItemInfo = (*GetSlotArray(FromSlotType))[FromSlotIndex]; // 해제한 아이템의 스탯 획득
-			CharacterStatComponent->UnequipItem(UnequipItemInfo.ItemStat, UnequipItemInfo.ItemDamageStat); // 아이템 스탯 해제
+			FItemBaseInfo UnequipItemInfo = (*GetSlotArray(FromSlotType))[FromSlotIndex]; 
+			CharacterStatComponent->UnequipItem(UnequipItemInfo.ItemStat, UnequipItemInfo.ItemDamageStat); 
+		}
+		// 장비 슬롯 -> 공용 슬롯으로 이동하는 경우(스왑 이후이므로 From : 장착, To : 해제)
+		else if (ToSlotType == EInventorySlotType::InventorySlot)
+		{
+			FItemBaseInfo EquipItemInfo = (*GetSlotArray(FromSlotType))[FromSlotIndex];
+			CharacterStatComponent->EquipItem(EquipItemInfo.ItemStat, EquipItemInfo.ItemDamageStat);
+
+			FItemBaseInfo UnequipItemInfo = (*GetSlotArray(ToSlotType))[ToSlotIndex];
+			CharacterStatComponent->UnequipItem(UnequipItemInfo.ItemStat, UnequipItemInfo.ItemDamageStat);
+		}
+
+		// 장비 장착 사운드 재생
+		if (EquipSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), EquipSound); 
 		}
 
 		return true; // 인벤토리 갱신은 SwapInventorySlot에서 처리함.

@@ -34,10 +34,10 @@ struct FBaseStat
 
 	FBaseStat()
 	{
-		MaxHP = 100.0f;
-		CurrentHP = 100.0f;
-		MaxStamina = 100.0f;
-		CurrentStamina = 100.0f;
+		MaxHP = 0.0f;
+		CurrentHP = 0.0f;
+		MaxStamina = 0.0f;
+		CurrentStamina = 0.0f;
 	}
 
 	FBaseStat(float InMaxHP, float InCurrentHP, float InMaxStamina, float InCurrentStamina)
@@ -90,7 +90,7 @@ struct FBaseDamageStat
 
     FBaseDamageStat()
     {
-        BaseDamage = 10.0f;
+        BaseDamage = 0.0f;
         AdditionalDamage = 0.0f;
         DamageReduction = 0.0f;
     }

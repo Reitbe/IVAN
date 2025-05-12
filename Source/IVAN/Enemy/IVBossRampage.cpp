@@ -52,6 +52,19 @@ void AIVBossRampage::PostInitializeComponents()
 	}
 }
 
+void AIVBossRampage::SetDead()
+{
+	if (AnimInstance)
+	{
+		AnimInstance->StopAllMontages(0.2f);
+	}
+
+	if (HitReactionComponent)
+	{
+		HitReactionComponent->PlayDeathMontage();
+	}
+}
+
 void AIVBossRampage::SpecialMove(AActor* TargetActor)
 {
 	/*
@@ -124,14 +137,20 @@ void AIVBossRampage::OnNotifySpecialAttackHit()
 
 void AIVBossRampage::OnSpecialMoveEnd(AActor* TargetActor)
 {
-	// 행동 종료를 컨트롤러에 알리는 SpecialMove 함수를 호출(Super로 호출 금지!!)
-	AIVBossEnemy::SpecialMove(TargetActor);
+	IIIVAIControllerSpecialCombat* AIController = Cast<IIIVAIControllerSpecialCombat>(GetController());
+	if (AIController)
+	{
+		AIController->SpecialMoveEnd();
+	}
 }
 
 void AIVBossRampage::OnSpecialAttackEnd(AActor* TargetActor)
 {
-	// 행동 종료를 컨트롤러에 알리는 SpecialAttack 함수를 호출(Super로 호출 금지!!)
-	AIVBossEnemy::SpecialAttack(TargetActor);
+	IIIVAIControllerSpecialCombat* AIController = Cast<IIIVAIControllerSpecialCombat>(GetController());
+	if (AIController)
+	{
+		AIController->SpecialAttackEnd();
+	}
 }
 
 void AIVBossRampage::StartLaunchCharacter(AActor* TargetActor)

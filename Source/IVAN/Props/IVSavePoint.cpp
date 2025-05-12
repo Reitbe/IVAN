@@ -5,6 +5,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "IVAN/GameSystem/IVSaveManagerSubsystem.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 
 // Sets default values
@@ -72,6 +75,22 @@ void AIVSavePoint::OnInteractionSphereEndOverlap(UPrimitiveComponent* Overlapped
 	}
 }
 
+void AIVSavePoint::PlaySaveEffect(FTransform SaveLocation)
+{
+	if (SaveEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SaveEffect, SaveLocation);
+	}
+}
+
+void AIVSavePoint::PlaySaveSound(FTransform SaveLocation)
+{
+	if (SaveSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SaveSound, SaveLocation.GetLocation());
+	}
+}
+
 void AIVSavePoint::Interact(AActor* InteractingActor)
 {
 	if (!bIsInteractable || !InteractingActor) return;
@@ -81,6 +100,9 @@ void AIVSavePoint::Interact(AActor* InteractingActor)
 	{
 		SaveManagerSubsystem->RequestSaveGame();
 		SaveManagerSubsystem->SaveTransform(InteractingActor->GetActorTransform()); // 플레이어의 현재 위치 저장
+
+		PlaySaveEffect(GetTransform());
+		PlaySaveSound(GetTransform());
 	}
 }
 

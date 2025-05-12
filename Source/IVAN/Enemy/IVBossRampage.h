@@ -26,6 +26,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 
+	/* Ragdoll을 사용하지 않는 별도 사망 처리*/
+	virtual void SetDead() override;
+
 
 // 모션 워핑
 public:

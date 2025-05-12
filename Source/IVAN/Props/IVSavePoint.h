@@ -10,6 +10,8 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class UWidgetComponent;
+class UParticleSystem;
+class USoundCue;
 
 /*
 * 게임 진행 상황 저장을 위한 세이브 포인트. 
@@ -66,6 +68,23 @@ public:
 	/* 장착할 위젯 */
 	TObjectPtr<UUserWidget> InteractionWidget;
 
+
+// 파티클 및 사운드 
+public:
+	/* 저장 이펙트 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
+	TObjectPtr<UParticleSystem> SaveEffect;
+
+	/* 저장 사운드 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
+	TObjectPtr<USoundCue> SaveSound;
+
+protected:
+	/* 저장 이펙트 재생 */
+	void PlaySaveEffect(FTransform SaveLocation);
+
+	/* 저장 사운드 재생 */
+	void PlaySaveSound(FTransform SaveLocation);
 
 // 인터페이스
 public:
