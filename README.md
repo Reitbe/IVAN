@@ -209,4 +209,4 @@ bool UIVInventoryComponent::SwapInventorySlot(EInventorySlotType FromSlotType, i
 
 
 ## 🕹️ 인게임 영상
-[![포트폴리오 영상](/ReadMeSource/youtube_thumbnail_v2.png)](https://www.youtube.com/watch?v=RglodEyCVSI&ab_channel=Whale_log)
+[![포트폴리오 영상](/ReadMeSource/youtube_thumbnail_v3.png)](https://youtu.be/RglodEyCVSI?si=qzDrUYeVzTtlYeXa)
